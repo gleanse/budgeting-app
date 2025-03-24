@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('apps.budgeting', '0002_delete_budget'),
+        ('budgeting', '0002_delete_budget'),
     ]
 
     operations = [
