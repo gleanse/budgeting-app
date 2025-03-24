@@ -1,1 +1,20 @@
-/venv/
+# virtual environment of python dependencies
+venv/  
+
+# python bytecode/cache compiled code 
+__pycache__/  
+*.pyc  
+*.pyo  
+*.pyd  
+
+# django-related files  
+*.log 
+
+# environment variables
+.env  
+
+# vscode settings
+.vscode/  
+
+# windows-specific useless files  
+Thumbs.db  

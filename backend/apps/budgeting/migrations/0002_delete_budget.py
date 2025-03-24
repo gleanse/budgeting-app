@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('budgeting_app_backend', '0001_initial'),
+        ('apps.budgeting', '0001_initial'),
     ]
 
     operations = [
