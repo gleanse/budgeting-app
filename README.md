@@ -11,3 +11,7 @@ Budgeting App is a full-stack web application designed to help users track their
 ### Backend:
 - Python django
 - PostgreSQL
+
+### Frontend:
+- React JS
+- Tailwind CSS
