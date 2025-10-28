@@ -1,0 +1,28 @@
+# VIRTUAL ENVIRONMENTS
+**/venv/
+**/env/
+**/ENV/
+
+# PYTHON
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
+
+# ENVIRONMENT VARIABLES
+**/.env
+**/.env.local
+
+# IDE
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+
+# OS
+**/.DS_Store
+**/Thumbs.db
+
+# DATABASE
+**/*.db
+**/*.sqlite3
