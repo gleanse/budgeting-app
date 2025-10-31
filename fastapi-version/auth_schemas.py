@@ -1,17 +1,17 @@
-from sqlmodel import SQLModel
+from pydantic import BaseModel
 
-class UserCreate(SQLModel):
+class UserCreate(BaseModel):
     username: str
     password: str 
 
-class UserResponse(SQLModel):
+class UserResponse(BaseModel):
     id: int
     username: str
 
-class RegisterResponse(SQLModel):
+class RegisterResponse(BaseModel):
     user: UserResponse
     message: str
 
-class LoginResponse(SQLModel):
+class LoginResponse(BaseModel):
     access_token: str
     token_type: str
