@@ -8,8 +8,9 @@ from auth import create_access_token, get_current_user
 
 # NOTE: import models to register them with SQLModels metadata
 # without this import, create_all() wont know which tables to create so despite its show its not being use its still important to import models
-from models import User
+from models import User, Income
 from auth_schemas import UserCreate, RegisterResponse, UserResponse
+from schemas import IncomeCreate,IncomeResponse, IncomeCreateResponse
 
 
 # STARTUP code that will first to run when server starts
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 DatabaseSession = Annotated[Session, Depends(get_session)]
+UserAuthentication =  Annotated[User, Depends(get_current_user)]
 
 
 @app.get("/")
@@ -59,7 +61,6 @@ async def register_user(session: DatabaseSession, user_data: UserCreate):
 
 @app.post("/login")
 async def login(session: DatabaseSession, form_data: OAuth2PasswordRequestForm = Depends()):
-
     # find user by username in database using orm sqlalchemy
     statement = select(User).where(User.username == form_data.username)
     user = session.exec(statement).first()
@@ -76,3 +77,45 @@ async def login(session: DatabaseSession, form_data: OAuth2PasswordRequestForm =
     access_token = create_access_token(username=user.username)
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+# TODO: simple logout endpoints for now since literally logout happeneds on frontend but for future enhancements/refactors add a blacklisted token for those who logged out but the token still valid and not expired
+@app.post("/logout")
+async def logout(session: DatabaseSession, current_user: UserAuthentication):
+    return {"message": "Successfully logged out"}
+
+@app.get("/income", response_model=list[IncomeResponse])
+async def get_incomes(session: DatabaseSession, current_user: UserAuthentication):
+    statement = select(Income).where(Income.user_id == current_user.id)
+    # we use all here to get all records rows not only first() row
+    incomes = session.exec(statement).all()
+
+    return incomes
+
+@app.post("/income", response_model=IncomeCreateResponse)
+async def create_income(session: DatabaseSession, income_data: IncomeCreate, current_user: UserAuthentication):
+    if income_data.amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Amount must be positive",
+        )
+
+    new_income = Income(
+        amount=income_data.amount,
+        category=income_data.category,
+        description=income_data.description,
+        user_id=current_user.id
+    )
+
+    session.add(new_income)
+    session.commit()
+    session.refresh(new_income)
+
+    return IncomeCreateResponse(
+        income=IncomeResponse(
+            id=new_income.id,
+            amount=new_income.amount,
+            category=new_income.category,
+            description=new_income.description,
+            date_time=new_income.date_time
+        )
+    )
