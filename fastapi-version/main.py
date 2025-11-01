@@ -8,9 +8,16 @@ from auth import create_access_token, get_current_user
 
 # NOTE: import models to register them with SQLModels metadata
 # without this import, create_all() wont know which tables to create so despite its show its not being use its still important to import models
-from models import User, Income
+from models import User, Income, Expense
 from auth_schemas import UserCreate, RegisterResponse, UserResponse
-from schemas import IncomeCreate,IncomeResponse, IncomeCreateResponse
+from schemas import (
+    IncomeCreate,
+    IncomeResponse,
+    IncomeCreateResponse,
+    ExpenseCreate,
+    ExpenseResponse,
+    ExpenseCreateResponse,
+)
 
 
 # STARTUP code that will first to run when server starts
@@ -103,7 +110,7 @@ async def create_income(session: DatabaseSession, income_data: IncomeCreate, cur
         amount=income_data.amount,
         category=income_data.category,
         description=income_data.description,
-        user_id=current_user.id
+        user_id=current_user.id,
     )
 
     session.add(new_income)
@@ -116,6 +123,101 @@ async def create_income(session: DatabaseSession, income_data: IncomeCreate, cur
             amount=new_income.amount,
             category=new_income.category,
             description=new_income.description,
-            date_time=new_income.date_time
+            date_time=new_income.date_time,
         )
     )
+
+@app.delete("/income/{income_id}")
+async def delete_income(session: DatabaseSession, current_user: UserAuthentication, income_id: int):
+    statement = select(Income).where(
+        Income.id == income_id,
+        Income.user_id == current_user.id,
+    )
+
+    income = session.exec(statement).first()
+
+    if not income:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Income record not found",
+        )
+    
+    deleted_income = {
+        "id": income.id,
+        "amount": income.amount,
+        "category": income.category,
+    }
+
+    session.delete(income)
+    session.commit()
+
+    return {
+        "message": "Income record deleted successfully",
+        "deleted_item": deleted_income,
+    }
+
+@app.get("/expense", response_model=list[ExpenseResponse])
+async def get_expenses(session: DatabaseSession, current_user: UserAuthentication):
+    statement = select(Expense).where(Expense.user_id == current_user.id)
+
+    expenses = session.exec(statement).all()
+
+    return expenses
+
+@app.post("/expense", response_model=ExpenseCreateResponse)
+async def create_expense(session: DatabaseSession, expense_data:ExpenseCreate, current_user:UserAuthentication):
+    if expense_data.amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Amount must be positive",
+        )
+    
+    new_expense = Expense(
+        amount=expense_data.amount,
+        category=expense_data.category,
+        description=expense_data.description,
+        user_id=current_user.id,
+    )
+
+    session.add(new_expense)
+    session.commit()
+    session.refresh(new_expense)
+
+    return ExpenseCreateResponse(
+         expense=ExpenseResponse(
+            id=new_expense.id,
+            amount=new_expense.amount,
+            category=new_expense.category,
+            description=new_expense.description,
+            date_time=new_expense.date_time,
+        )
+    )
+
+@app.delete("/expense/{expense_id}")
+async def delete_expense(session: DatabaseSession, current_user: UserAuthentication, expense_id: int):
+    statement = select(Expense).where(
+        Expense.id == expense_id,
+        Expense.user_id == current_user.id,
+    )
+
+    expense = session.exec(statement).first()
+
+    if not expense:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Expense record not found",
+        )
+    
+    deleted_expense = {
+        "id": expense.id,
+        "amount": expense.amount,
+        "category": expense.category,
+    }
+    
+    session.delete(expense)
+    session.commit()
+
+    return {
+        "message": "Expense record deleted successfully",
+        "deleted_item": deleted_expense,
+    }
