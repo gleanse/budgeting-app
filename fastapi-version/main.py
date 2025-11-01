@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session, SQLModel, select
+from sqlmodel import Session, SQLModel, select, func
 from contextlib import asynccontextmanager
 from typing import Annotated
 from database import engine, get_session
@@ -90,7 +90,7 @@ async def login(session: DatabaseSession, form_data: OAuth2PasswordRequestForm =
 async def logout(session: DatabaseSession, current_user: UserAuthentication):
     return {"message": "Successfully logged out"}
 
-@app.get("/income", response_model=list[IncomeResponse])
+@app.get("/incomes", response_model=list[IncomeResponse])
 async def get_incomes(session: DatabaseSession, current_user: UserAuthentication):
     statement = select(Income).where(Income.user_id == current_user.id)
     # we use all here to get all records rows not only first() row
@@ -98,7 +98,7 @@ async def get_incomes(session: DatabaseSession, current_user: UserAuthentication
 
     return incomes
 
-@app.post("/income", response_model=IncomeCreateResponse)
+@app.post("/incomes", response_model=IncomeCreateResponse)
 async def create_income(session: DatabaseSession, income_data: IncomeCreate, current_user: UserAuthentication):
     if income_data.amount <= 0:
         raise HTTPException(
@@ -127,7 +127,7 @@ async def create_income(session: DatabaseSession, income_data: IncomeCreate, cur
         )
     )
 
-@app.delete("/income/{income_id}")
+@app.delete("/incomes/{income_id}")
 async def delete_income(session: DatabaseSession, current_user: UserAuthentication, income_id: int):
     statement = select(Income).where(
         Income.id == income_id,
@@ -156,7 +156,7 @@ async def delete_income(session: DatabaseSession, current_user: UserAuthenticati
         "deleted_item": deleted_income,
     }
 
-@app.get("/expense", response_model=list[ExpenseResponse])
+@app.get("/expenses", response_model=list[ExpenseResponse])
 async def get_expenses(session: DatabaseSession, current_user: UserAuthentication):
     statement = select(Expense).where(Expense.user_id == current_user.id)
 
@@ -164,7 +164,7 @@ async def get_expenses(session: DatabaseSession, current_user: UserAuthenticatio
 
     return expenses
 
-@app.post("/expense", response_model=ExpenseCreateResponse)
+@app.post("/expenses", response_model=ExpenseCreateResponse)
 async def create_expense(session: DatabaseSession, expense_data:ExpenseCreate, current_user:UserAuthentication):
     if expense_data.amount <= 0:
         raise HTTPException(
@@ -193,7 +193,7 @@ async def create_expense(session: DatabaseSession, expense_data:ExpenseCreate, c
         )
     )
 
-@app.delete("/expense/{expense_id}")
+@app.delete("/expenses/{expense_id}")
 async def delete_expense(session: DatabaseSession, current_user: UserAuthentication, expense_id: int):
     statement = select(Expense).where(
         Expense.id == expense_id,
@@ -220,4 +220,22 @@ async def delete_expense(session: DatabaseSession, current_user: UserAuthenticat
     return {
         "message": "Expense record deleted successfully",
         "deleted_item": deleted_expense,
+    }
+
+@app.get("/balance")
+async def get_balance(session: DatabaseSession, current_user: UserAuthentication):
+    # calculating sum of all income
+    income_statement = select(func.sum(Income.amount)).where(Income.user_id == current_user.id)
+    total_income = session.exec(income_statement).first() or 0
+
+    # calculating sum of all expenses
+    expense_statement = select(func.sum(Expense.amount)).where(Expense.user_id == current_user.id)
+    total_expenses = session.exec(expense_statement).first() or 0
+
+    balance = total_income - total_expenses
+
+    return {
+        "balance": balance,
+        "total_income": total_income,
+        "total_expenses": total_expenses,
     }
