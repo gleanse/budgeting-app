@@ -8,7 +8,12 @@ from auth import create_access_token, get_current_user
 
 # NOTE: import models to register them with SQLModels metadata
 # without this import, create_all() wont know which tables to create so despite its show its not being use its still important to import models
-from models import User, Income, Expense
+from models import (
+    User,
+    Income,
+    Expense,
+    Category,
+)
 from auth_schemas import UserCreate, RegisterResponse, UserResponse
 from schemas import (
     IncomeCreate,
@@ -17,6 +22,9 @@ from schemas import (
     ExpenseCreate,
     ExpenseResponse,
     ExpenseCreateResponse,
+    CategoryCreate,
+    CategoryResponse,
+    CategoryCreateResponse,
 )
 
 
@@ -92,9 +100,24 @@ async def logout(session: DatabaseSession, current_user: UserAuthentication):
 
 @app.get("/incomes", response_model=list[IncomeResponse])
 async def get_incomes(session: DatabaseSession, current_user: UserAuthentication):
-    statement = select(Income).where(Income.user_id == current_user.id)
+    # joining the category name for frontend use i use outerjoin for now since i do have old data that are null
+    # TODO: use normal join later
+    statement = select(Income, Category.name).outerjoin(Category).where(Income.user_id == current_user.id)
     # we use all here to get all records rows not only first() row
-    incomes = session.exec(statement).all()
+    results = session.exec(statement).all()
+
+    incomes = []
+
+    # reformatting each db rows into dict
+    for income, category_name in results:
+        incomes.append({
+            "id": income.id,
+            "amount": income.amount,
+            "category_id": income.category_id or 0,
+            "category_name": category_name or "Uncategorized (OLD DATA)",
+            "description": income.description,
+            "date_time": income.date_time
+        })
 
     return incomes
 
@@ -105,10 +128,29 @@ async def create_income(session: DatabaseSession, income_data: IncomeCreate, cur
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Amount must be positive",
         )
+    
+    statement = select(Category).where(
+        Category.id == income_data.category_id,
+        Category.user_id == current_user.id
+    )
+
+    category = session.exec(statement).first()
+
+    # validation checking if the category id input is existing and belong to income category
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found",
+        )
+    elif category.type == "expense":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid category use income category",
+        )
 
     new_income = Income(
         amount=income_data.amount,
-        category=income_data.category,
+        category_id=income_data.category_id,
         description=income_data.description,
         user_id=current_user.id,
     )
@@ -117,11 +159,14 @@ async def create_income(session: DatabaseSession, income_data: IncomeCreate, cur
     session.commit()
     session.refresh(new_income)
 
+    category = session.get(Category, new_income.category_id)
+
     return IncomeCreateResponse(
         income=IncomeResponse(
             id=new_income.id,
             amount=new_income.amount,
-            category=new_income.category,
+            category_id=new_income.category_id,
+            category_name=category.name if category else "",
             description=new_income.description,
             date_time=new_income.date_time,
         )
@@ -145,7 +190,7 @@ async def delete_income(session: DatabaseSession, current_user: UserAuthenticati
     deleted_income = {
         "id": income.id,
         "amount": income.amount,
-        "category": income.category,
+        "category_id": income.category_id,
     }
 
     session.delete(income)
@@ -158,9 +203,20 @@ async def delete_income(session: DatabaseSession, current_user: UserAuthenticati
 
 @app.get("/expenses", response_model=list[ExpenseResponse])
 async def get_expenses(session: DatabaseSession, current_user: UserAuthentication):
-    statement = select(Expense).where(Expense.user_id == current_user.id)
+    statement = select(Expense, Category.name).outerjoin(Category).where(Expense.user_id == current_user.id)
+    results = session.exec(statement).all()
 
-    expenses = session.exec(statement).all()
+    expenses = []
+
+    for expense, category_name in results:
+        expenses.append({
+            "id": expense.id,
+            "amount": expense.amount,
+            "category_id": expense.category_id or 0,
+            "category_name": category_name or "Uncategorized (OLD DATA)",
+            "description": expense.description,
+            "date_time": expense.date_time
+        })
 
     return expenses
 
@@ -172,9 +228,28 @@ async def create_expense(session: DatabaseSession, expense_data:ExpenseCreate, c
             detail="Amount must be positive",
         )
     
+    statement = select(Category).where(
+        Category.id == expense_data.category_id,
+        Category.user_id == current_user.id,
+    )
+
+    category = session.exec(statement).first()
+
+    # validation checking if the category id input is existing and belong to expense category
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found",
+        )
+    elif category.type == "income":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid category use expense category",
+        )
+
     new_expense = Expense(
         amount=expense_data.amount,
-        category=expense_data.category,
+        category_id=expense_data.category_id,
         description=expense_data.description,
         user_id=current_user.id,
     )
@@ -183,11 +258,14 @@ async def create_expense(session: DatabaseSession, expense_data:ExpenseCreate, c
     session.commit()
     session.refresh(new_expense)
 
+    category = session.get(Category, new_expense.category_id)
+    
     return ExpenseCreateResponse(
          expense=ExpenseResponse(
             id=new_expense.id,
             amount=new_expense.amount,
-            category=new_expense.category,
+            category_id=new_expense.category_id,
+            category_name=category.name if category else "",
             description=new_expense.description,
             date_time=new_expense.date_time,
         )
@@ -211,7 +289,7 @@ async def delete_expense(session: DatabaseSession, current_user: UserAuthenticat
     deleted_expense = {
         "id": expense.id,
         "amount": expense.amount,
-        "category": expense.category,
+        "category_id": expense.category_id,
     }
     
     session.delete(expense)
@@ -238,4 +316,81 @@ async def get_balance(session: DatabaseSession, current_user: UserAuthentication
         "balance": balance,
         "total_income": total_income,
         "total_expenses": total_expenses,
+    }
+
+@app.get("/categories", response_model=list[CategoryResponse])
+async def get_categories(session: DatabaseSession, current_user: UserAuthentication):
+    statement = select(Category).where(Category.user_id == current_user.id)
+    categories = session.exec(statement).all()
+
+    return categories
+
+@app.post("/categories", response_model=CategoryCreateResponse)
+async def create_category(session: DatabaseSession, category_data: CategoryCreate, current_user: UserAuthentication):
+    if category_data.type not in ["income", "expense"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Type must be 'income' or 'expense'"
+        )
+    
+    new_category = Category(
+        name=category_data.name,
+        type=category_data.type,
+        user_id=current_user.id,
+    )
+
+    session.add(new_category)
+    session.commit()
+    session.refresh(new_category)
+
+    return CategoryCreateResponse(
+        category=CategoryResponse(
+            id=new_category.id,
+            name=new_category.name,
+            type=new_category.type,
+            user_id=new_category.user_id,
+        )
+    )
+
+@app.delete("/categories/{category_id}")
+async def delete_category(session: DatabaseSession, current_user: UserAuthentication, category_id: int):
+    statement = select(Category).where(
+        Category.id == category_id,
+        Category.user_id == current_user.id,
+    )
+    category = session.exec(statement).first()
+
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+    
+    # check if the category is being used
+    income_count = session.exec(
+        select(Income).where(Income.category_id == category_id)
+    ).first()
+
+    expense_count = session.exec(
+        select(Expense).where(Expense.category_id == category_id)
+    ).first()
+
+    if income_count or expense_count:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete category that is being used by income or expense records"
+        )
+    
+    deleted_category = {
+        "id": category.id,
+        "name": category.name,
+        "type": category.type,
+    }
+
+    session.delete(category)
+    session.commit()
+
+    return {
+        "message": "Category deleted successfully",
+        "deleted_item": deleted_category,
     }
