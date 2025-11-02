@@ -6,6 +6,8 @@ class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(index=True)
     password_hash: str
+
+    # RELATIONSHIP
     # one to many relationship since one user can have so many incomes thats why its foreignkey to Income table
     incomes: list["Income"] = Relationship(back_populates="user")
     expenses: list["Expense"] = Relationship(back_populates="user")
@@ -35,16 +37,20 @@ class Income(SQLModel, table=True):
     # default_factory for dynamic values, used lambda to encapsulate the datetime stamp function that only run everytime its recorded or data is being inserted
     date_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     user_id: int = Field(foreign_key="user.id")
+
+    # RELATIONSHIP
     user: User | None = Relationship(back_populates="incomes")
     category: "Category" = Relationship(back_populates="incomes")
 
 class Expense(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     amount: float = Field(gt=0)
-    category: str = Field(index=True)
+    category_id: int = Field(foreign_key="category.id")
     description: str
     date_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     user_id: int = Field(foreign_key="user.id")
+
+    # RELATIONSHIP
     user: User | None = Relationship(back_populates="expenses")
     category: "Category" = Relationship(back_populates="expenses")
 
@@ -53,6 +59,8 @@ class Category(SQLModel, table=True):
     name: str = Field(index=True)
     type: str = Field()
     user_id: int = Field(foreign_key="user.id")
+
+    # RELATIONSHIP
     user: User | None = Relationship(back_populates="categories")
     incomes: list["Income"] = Relationship(back_populates="category")
     expenses: list["Expense"] = Relationship(back_populates="category")
