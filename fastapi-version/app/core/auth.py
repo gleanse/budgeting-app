@@ -4,8 +4,8 @@ from jose import ExpiredSignatureError, JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from decouple import config
 from sqlmodel import Session, select
-from database import get_session
-from models import User
+from app.database import get_session
+from app.models import User
 
 SECRET_JWT_KEY = config("JWT_KEY")
 ALGORITHM = "HS256"

@@ -3,19 +3,19 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, SQLModel, select, func
 from contextlib import asynccontextmanager
 from typing import Annotated
-from database import engine, get_session
-from auth import create_access_token, get_current_user
+from app.database import engine, get_session
+from app.core.auth import create_access_token, get_current_user
 
 # NOTE: import models to register them with SQLModels metadata
 # without this import, create_all() wont know which tables to create so despite its show its not being use its still important to import models
-from models import (
+from app.models import (
     User,
     Income,
     Expense,
     Category,
 )
-from auth_schemas import UserCreate, RegisterResponse, UserResponse
-from schemas import (
+from app.schemas.auth_schemas import UserCreate, RegisterResponse, UserResponse
+from app.schemas.schemas import (
     IncomeCreate,
     IncomeResponse,
     IncomeCreateResponse,
