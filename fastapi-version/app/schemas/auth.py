@@ -8,7 +8,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
 
-class RegisterResponse(BaseModel):
+class UserCreateResponse (BaseModel):
     user: UserResponse
     message: str
 

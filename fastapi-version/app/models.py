@@ -32,7 +32,7 @@ class Income(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     # gt means greater than to make sure it wont stored negatives invalid numbers
     amount: float = Field(gt=0)
-    category_id: int = Field(foreign_key="category.id")
+    category_id: int | None = Field(default=None, foreign_key="category.id")
     description: str
     # default_factory for dynamic values, used lambda to encapsulate the datetime stamp function that only run everytime its recorded or data is being inserted
     date_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -45,7 +45,7 @@ class Income(SQLModel, table=True):
 class Expense(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     amount: float = Field(gt=0)
-    category_id: int = Field(foreign_key="category.id")
+    category_id: int | None = Field(default=None, foreign_key="category.id")
     description: str
     date_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     user_id: int = Field(foreign_key="user.id")

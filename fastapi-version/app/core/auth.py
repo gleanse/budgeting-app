@@ -20,6 +20,7 @@ def create_access_token(username: str):
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     data["exp"] = expire
     token = jwt.encode(data, SECRET_JWT_KEY, algorithm=ALGORITHM)
+    
     return token
 
 # get current user and authenticate it verify token for validity and expiration
@@ -28,7 +29,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
         payload = jwt.decode(token, SECRET_JWT_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
 
-        # if subject or username doesnt exist invalidate it 
         if username is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

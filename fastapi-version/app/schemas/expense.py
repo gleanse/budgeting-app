@@ -1,0 +1,22 @@
+from pydantic import BaseModel
+from datetime import datetime
+
+
+class ExpenseCreate(BaseModel):
+    amount: float
+    category_id: int
+    description: str
+
+
+class ExpenseResponse(BaseModel):
+    id: int
+    amount: float
+    category_id: int
+    category_name: str
+    description: str
+    date_time: datetime
+
+
+class ExpenseCreateResponse(BaseModel):
+    message: str = "Expense created successfully"
+    expense: ExpenseResponse
