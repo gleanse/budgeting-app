@@ -3,7 +3,7 @@ from sqlmodel import SQLModel
 from contextlib import asynccontextmanager
 from app.database import engine
 from app.models import User, Income, Expense, Category
-from app.routers import auth, income, expense, category, balance
+from app.routers import auth_router, balance_router, category_router, expense_router, income_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -16,11 +16,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(auth.router)
-app.include_router(income.router)
-app.include_router(expense.router)
-app.include_router(category.router)
-app.include_router(balance.router)
+app.include_router(auth_router.router)
+app.include_router(income_router.router)
+app.include_router(expense_router.router)
+app.include_router(category_router.router)
+app.include_router(balance_router.router)
 
 @app.get("/")
 async def root():

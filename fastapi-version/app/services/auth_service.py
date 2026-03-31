@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 from app.models import User
-from app.schemas.auth import UserCreate
-from app.core.auth import create_access_token
+from app.schemas.auth_schema import UserCreate
+from app.core.auth_core import create_access_token
 
 def register_user(session: Session, user_data: UserCreate):
     statement = select(User).where(User.username == user_data.username)

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session, select, func
 from typing import Annotated
 from app.database import get_session
-from app.core.auth import get_current_user
+from app.core.auth_core import get_current_user
 from app.models import User, Income, Expense
 
 router = APIRouter()

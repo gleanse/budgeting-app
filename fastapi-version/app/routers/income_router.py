@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import Annotated
 from app.database import get_session
-from app.core.auth import get_current_user
+from app.core.auth_core import get_current_user
 from app.models import User, Income, Category
-from app.schemas.income import IncomeCreate, IncomeResponse, IncomeCreateResponse
+from app.schemas.income_schema import IncomeCreate, IncomeResponse, IncomeCreateResponse
 
 router = APIRouter()
 
