@@ -6,7 +6,7 @@ from app.database import get_session
 from app.core.auth_core import get_current_user
 from app.models import User
 from app.schemas.auth_schema import UserCreate, UserResponse, UserCreateResponse, LoginResponse
-import app.services.auth_service as auth_service
+from app.services.auth_service import AuthService
 
 router = APIRouter()
 
@@ -15,8 +15,10 @@ UserAuthentication = Annotated[User, Depends(get_current_user)]
 
 @router.post("/register", response_model=UserCreateResponse)
 async def register_user(session: DatabaseSession, user_data: UserCreate):
+    auth_service = AuthService(session)
+
     try:
-        new_user = auth_service.register_user(session, user_data)
+        new_user = auth_service.register_user(user_data)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -30,8 +32,10 @@ async def register_user(session: DatabaseSession, user_data: UserCreate):
 
 @router.post("/login", response_model=LoginResponse)
 async def login(session: DatabaseSession, form_data: OAuth2PasswordRequestForm = Depends()):
+    auth_service = AuthService(session)
+    
     try:
-        access_token = auth_service.login(session, form_data.username, form_data.password)
+        access_token = auth_service.login(form_data.username, form_data.password)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
