@@ -1,4 +1,4 @@
-from sqlmodel import Session, select
+from sqlmodel import Session
 from app.models import User
 from app.schemas.auth_schema import UserCreate
 from app.repositories.user_repository import UserRepository
