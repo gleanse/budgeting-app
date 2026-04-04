@@ -1,6 +1,5 @@
 from sqlmodel import Session, select
-from app.models  import User
-from app.schemas.auth_schema import UserCreate
+from app.models import User
 
 class UserRepository:
     def __init__(self, session: Session):
@@ -10,7 +9,7 @@ class UserRepository:
         statement = select(User).where(User.username == username)
         return self.session.exec(statement).first()
     
-    def add_new_user(self, user: User) -> User:
+    def add(self, user: User) -> User:
         self.session.add(user)
         self.session.commit()
         self.session.refresh(user)

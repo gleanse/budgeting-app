@@ -15,7 +15,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # creating access token for the user tied to their username then add a jwt key and expiration
-def create_access_token(username: str):
+def create_access_token(username: str) -> str:
     data = {"sub": username}
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     data["exp"] = expire
@@ -24,7 +24,7 @@ def create_access_token(username: str):
     return token
 
 # get current user and authenticate it verify token for validity and expiration
-async def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
+async def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)) -> User:
     try:
         payload = jwt.decode(token, SECRET_JWT_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")

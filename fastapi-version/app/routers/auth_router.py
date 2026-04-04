@@ -18,7 +18,10 @@ async def register_user(session: DatabaseSession, user_data: UserCreate):
     auth_service = AuthService(session)
 
     try:
-        new_user = auth_service.register_user(user_data)
+        registered_user = auth_service.register_user(
+            username=user_data.username,
+            password=user_data.password,
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -26,7 +29,7 @@ async def register_user(session: DatabaseSession, user_data: UserCreate):
         )
     
     return UserCreateResponse(
-        user=UserResponse(id=new_user.id, username=new_user.username),
+        user=UserResponse(id=registered_user.id, username=registered_user.username),
         message="User created successfully",
     )
 
@@ -45,6 +48,6 @@ async def login(session: DatabaseSession, form_data: OAuth2PasswordRequestForm =
 
     return LoginResponse(access_token=access_token, token_type="bearer")
 
-@router.post("/logout")
+@router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(current_user: UserAuthentication):
     return {"message": "Successfully logged out"}
