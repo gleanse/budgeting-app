@@ -2,8 +2,7 @@ from fastapi import FastAPI
 from sqlmodel import SQLModel
 from contextlib import asynccontextmanager
 from app.database import engine
-from app.models import User, Income, Expense, Category
-from app.routers import (
+from app.routers.v1 import (
     auth_router,
     balance_router,
     category_router,

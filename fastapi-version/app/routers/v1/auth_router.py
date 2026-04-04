@@ -5,13 +5,13 @@ from typing import Annotated
 from app.database import get_session
 from app.core.auth_core import get_current_user
 from app.models import User
-from app.schemas.auth_schema import (
+from app.schemas.v1.auth_schema import (
     UserCreate,
     UserResponse,
     UserCreateResponse,
     LoginResponse,
 )
-from app.services.auth_service import AuthService
+from app.services.v1.auth_service import AuthService
 
 router = APIRouter()
 

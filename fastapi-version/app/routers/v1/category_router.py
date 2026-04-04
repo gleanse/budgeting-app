@@ -4,7 +4,7 @@ from typing import Annotated
 from app.database import get_session
 from app.core.auth_core import get_current_user
 from app.models import User, Category, Income, Expense
-from app.schemas.category_schema import (
+from app.schemas.v1.category_schema import (
     CategoryCreate,
     CategoryResponse,
     CategoryCreateResponse,

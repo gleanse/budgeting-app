@@ -4,14 +4,14 @@ from typing import Annotated
 from app.database import get_session
 from app.core.auth_core import get_current_user
 from app.models import User
-from app.schemas.income_schema import (
+from app.schemas.v1.income_schema import (
     IncomeCreate,
     IncomeResponse,
     IncomeCreateResponse,
     IncomeDelete,
     IncomeDeleteResponse,
 )
-from app.services.income_service import IncomeService
+from app.services.v1.income_service import IncomeService
 
 router = APIRouter()
 
