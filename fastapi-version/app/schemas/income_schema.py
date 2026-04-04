@@ -21,10 +21,12 @@ class IncomeCreateResponse(BaseModel):
     message: str = "Income created successfully"
     income: IncomeResponse
 
+
 class IncomeDelete(BaseModel):
     id: int
     amount: float
     category_id: int
+
 
 class IncomeDeleteResponse(BaseModel):
     message: str = "Income record deleted successfully"

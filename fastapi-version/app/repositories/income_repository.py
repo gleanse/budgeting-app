@@ -9,7 +9,7 @@ class IncomeRepository:
     def get_all_by_user(self, user_id: int) -> list[Income]:
         statement = select(Income).where(Income.user_id == user_id)
         return self.session.exec(statement).all()
-    
+
     def get_by_id_and_user(self, income_id: int, user_id: int) -> Income | None:
         statement = select(Income).where(
             Income.id == income_id,
@@ -24,7 +24,7 @@ class IncomeRepository:
         self.session.refresh(income)
 
         return income
-    
+
     def delete(self, income: Income):
         self.session.delete(income)
         self.session.commit()

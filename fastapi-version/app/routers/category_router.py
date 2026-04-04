@@ -4,12 +4,17 @@ from typing import Annotated
 from app.database import get_session
 from app.core.auth_core import get_current_user
 from app.models import User, Category, Income, Expense
-from app.schemas.category_schema import CategoryCreate, CategoryResponse, CategoryCreateResponse
+from app.schemas.category_schema import (
+    CategoryCreate,
+    CategoryResponse,
+    CategoryCreateResponse,
+)
 
 router = APIRouter()
 
 DatabaseSession = Annotated[Session, Depends(get_session)]
 UserAuthentication = Annotated[User, Depends(get_current_user)]
+
 
 @router.get("/categories", response_model=list[CategoryResponse])
 async def get_categories(session: DatabaseSession, current_user: UserAuthentication):
@@ -17,8 +22,13 @@ async def get_categories(session: DatabaseSession, current_user: UserAuthenticat
     categories = session.exec(statement).all()
     return categories
 
+
 @router.post("/categories", response_model=CategoryCreateResponse)
-async def create_category(session: DatabaseSession, category_data: CategoryCreate, current_user: UserAuthentication):
+async def create_category(
+    session: DatabaseSession,
+    category_data: CategoryCreate,
+    current_user: UserAuthentication,
+):
     new_category = Category(
         name=category_data.name,
         type=category_data.type,
@@ -38,8 +48,11 @@ async def create_category(session: DatabaseSession, category_data: CategoryCreat
         )
     )
 
+
 @router.delete("/categories/{category_id}")
-async def delete_category(session: DatabaseSession, current_user: UserAuthentication, category_id: int):
+async def delete_category(
+    session: DatabaseSession, current_user: UserAuthentication, category_id: int
+):
     statement = select(Category).where(
         Category.id == category_id,
         Category.user_id == current_user.id,
@@ -48,10 +61,9 @@ async def delete_category(session: DatabaseSession, current_user: UserAuthentica
 
     if not category:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
         )
-    
+
     income_count = session.exec(
         select(Income).where(Income.category_id == category_id)
     ).first()
@@ -63,9 +75,9 @@ async def delete_category(session: DatabaseSession, current_user: UserAuthentica
     if income_count or expense_count:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete category that is being used by income or expense records"
+            detail="Cannot delete category that is being used by income or expense records",
         )
-    
+
     deleted_category = {
         "id": category.id,
         "name": category.name,

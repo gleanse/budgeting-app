@@ -21,4 +21,4 @@ class CategoryResponse(BaseModel):
 
 class CategoryCreateResponse(BaseModel):
     message: str = "Category created successfully"
-    category: CategoryResponse 
+    category: CategoryResponse

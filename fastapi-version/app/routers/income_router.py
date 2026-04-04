@@ -4,14 +4,20 @@ from typing import Annotated
 from app.database import get_session
 from app.core.auth_core import get_current_user
 from app.models import User
-from app.schemas.income_schema import IncomeCreate, IncomeResponse, IncomeCreateResponse, IncomeDelete, IncomeDeleteResponse
+from app.schemas.income_schema import (
+    IncomeCreate,
+    IncomeResponse,
+    IncomeCreateResponse,
+    IncomeDelete,
+    IncomeDeleteResponse,
+)
 from app.services.income_service import IncomeService
-
 
 router = APIRouter()
 
 DatabaseSession = Annotated[Session, Depends(get_session)]
 UserAuthentication = Annotated[User, Depends(get_current_user)]
+
 
 @router.get("/incomes", response_model=list[IncomeResponse])
 async def get_incomes(session: DatabaseSession, current_user: UserAuthentication):
@@ -31,8 +37,15 @@ async def get_incomes(session: DatabaseSession, current_user: UserAuthentication
         for income in incomes
     ]
 
-@router.post("/incomes", response_model=IncomeCreateResponse, status_code=status.HTTP_201_CREATED)
-async def create_income(session: DatabaseSession, income_data: IncomeCreate, current_user: UserAuthentication):
+
+@router.post(
+    "/incomes", response_model=IncomeCreateResponse, status_code=status.HTTP_201_CREATED
+)
+async def create_income(
+    session: DatabaseSession,
+    income_data: IncomeCreate,
+    current_user: UserAuthentication,
+):
     income_service = IncomeService(session)
 
     try:
@@ -43,10 +56,7 @@ async def create_income(session: DatabaseSession, income_data: IncomeCreate, cur
             user_id=current_user.id,
         )
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     return IncomeCreateResponse(
         message="Income created successfully",
@@ -57,26 +67,26 @@ async def create_income(session: DatabaseSession, income_data: IncomeCreate, cur
             category_name=created_income.category.name,
             description=created_income.description,
             date_time=created_income.date_time,
-        )
+        ),
     )
 
+
 @router.delete("/incomes/{income_id}", response_model=IncomeDeleteResponse)
-async def delete_income(session: DatabaseSession, current_user: UserAuthentication, income_id: int):
+async def delete_income(
+    session: DatabaseSession, current_user: UserAuthentication, income_id: int
+):
     income_service = IncomeService(session)
 
     try:
         deleted_income = income_service.delete(income_id, current_user.id)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
     return IncomeDeleteResponse(
         message="Income record deleted successfully",
         deleted_item=IncomeDelete(
             id=deleted_income.id,
             amount=deleted_income.amount,
             category_id=deleted_income.category_id,
-        )
+        ),
     )

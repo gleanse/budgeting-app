@@ -2,6 +2,7 @@ from sqlmodel import Field, SQLModel, Relationship
 from datetime import datetime, timezone
 import bcrypt
 
+
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(index=True)
@@ -16,18 +17,17 @@ class User(SQLModel, table=True):
     # hash password and store it
     def set_password(self, password: str):
         salt = bcrypt.gensalt()
-        self.password_hash = bcrypt.hashpw(
-            password.encode("utf-8"),
-            salt
-        ).decode("utf-8")
+        self.password_hash = bcrypt.hashpw(password.encode("utf-8"), salt).decode(
+            "utf-8"
+        )
 
     # verify if password matches the hash
     def verify_password(self, password: str) -> bool:
         return bcrypt.checkpw(
-            password.encode("utf-8"), 
-            self.password_hash.encode("utf-8")
+            password.encode("utf-8"), self.password_hash.encode("utf-8")
         )
-    
+
+
 class Income(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     # gt means greater than to make sure it wont stored negatives invalid numbers
@@ -42,6 +42,7 @@ class Income(SQLModel, table=True):
     user: User | None = Relationship(back_populates="incomes")
     category: "Category" = Relationship(back_populates="incomes")
 
+
 class Expense(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     amount: float = Field(gt=0)
@@ -53,6 +54,7 @@ class Expense(SQLModel, table=True):
     # RELATIONSHIP
     user: User | None = Relationship(back_populates="expenses")
     category: "Category" = Relationship(back_populates="expenses")
+
 
 class Category(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
