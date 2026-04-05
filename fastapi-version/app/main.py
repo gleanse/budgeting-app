@@ -21,13 +21,18 @@ async def lifespan(app: FastAPI):
     print("SERVER - Shutting down...")
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="Budgeting App API",
+    version="1.0.0",
+    description="API for managing personal finances - incomes, expenses, categories, and balance",
+    lifespan=lifespan,
+)
 
-app.include_router(auth_router.router)
-app.include_router(income_router.router)
-app.include_router(expense_router.router)
-app.include_router(category_router.router)
-app.include_router(balance_router.router)
+app.include_router(auth_router.router, prefix="/api/v1")
+app.include_router(income_router.router, prefix="/api/v1")
+app.include_router(expense_router.router, prefix="/api/v1")
+app.include_router(category_router.router, prefix="/api/v1")
+app.include_router(balance_router.router, prefix="/api/v1")
 
 
 @app.get("/")

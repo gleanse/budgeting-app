@@ -13,13 +13,13 @@ from app.schemas.v1.income_schema import (
 )
 from app.services.v1.income_service import IncomeService
 
-router = APIRouter()
+router = APIRouter(prefix="/incomes", tags=["incomes"])
 
 DatabaseSession = Annotated[Session, Depends(get_session)]
 UserAuthentication = Annotated[User, Depends(get_current_user)]
 
 
-@router.get("/incomes", response_model=list[IncomeResponse])
+@router.get("/", response_model=list[IncomeResponse])
 async def get_incomes(session: DatabaseSession, current_user: UserAuthentication):
     income_service = IncomeService(session)
 
@@ -39,7 +39,7 @@ async def get_incomes(session: DatabaseSession, current_user: UserAuthentication
 
 
 @router.post(
-    "/incomes", response_model=IncomeCreateResponse, status_code=status.HTTP_201_CREATED
+    "/", response_model=IncomeCreateResponse, status_code=status.HTTP_201_CREATED
 )
 async def create_income(
     session: DatabaseSession,
@@ -71,7 +71,7 @@ async def create_income(
     )
 
 
-@router.delete("/incomes/{income_id}", response_model=IncomeDeleteResponse)
+@router.delete("/{income_id}", response_model=IncomeDeleteResponse)
 async def delete_income(
     session: DatabaseSession, current_user: UserAuthentication, income_id: int
 ):

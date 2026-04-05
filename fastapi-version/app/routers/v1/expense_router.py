@@ -10,13 +10,13 @@ from app.schemas.v1.expense_schema import (
     ExpenseCreateResponse,
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/expenses", tags=["expenses"])
 
 DatabaseSession = Annotated[Session, Depends(get_session)]
 UserAuthentication = Annotated[User, Depends(get_current_user)]
 
 
-@router.get("/expenses", response_model=list[ExpenseResponse])
+@router.get("/", response_model=list[ExpenseResponse])
 async def get_expenses(session: DatabaseSession, current_user: UserAuthentication):
     statement = (
         select(Expense, Category.name)
@@ -41,7 +41,7 @@ async def get_expenses(session: DatabaseSession, current_user: UserAuthenticatio
     return expenses
 
 
-@router.post("/expenses", response_model=ExpenseCreateResponse)
+@router.post("/", response_model=ExpenseCreateResponse)
 async def create_expense(
     session: DatabaseSession,
     expense_data: ExpenseCreate,
@@ -95,7 +95,7 @@ async def create_expense(
     )
 
 
-@router.delete("/expenses/{expense_id}")
+@router.delete("/{expense_id}")
 async def delete_expense(
     session: DatabaseSession, current_user: UserAuthentication, expense_id: int
 ):

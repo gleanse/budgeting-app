@@ -13,7 +13,7 @@ from app.schemas.v1.auth_schema import (
 )
 from app.services.v1.auth_service import AuthService
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 DatabaseSession = Annotated[Session, Depends(get_session)]
 UserAuthentication = Annotated[User, Depends(get_current_user)]

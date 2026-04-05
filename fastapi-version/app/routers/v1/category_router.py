@@ -10,20 +10,20 @@ from app.schemas.v1.category_schema import (
     CategoryCreateResponse,
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/categories", tags=["categories"])
 
 DatabaseSession = Annotated[Session, Depends(get_session)]
 UserAuthentication = Annotated[User, Depends(get_current_user)]
 
 
-@router.get("/categories", response_model=list[CategoryResponse])
+@router.get("/", response_model=list[CategoryResponse])
 async def get_categories(session: DatabaseSession, current_user: UserAuthentication):
     statement = select(Category).where(Category.user_id == current_user.id)
     categories = session.exec(statement).all()
     return categories
 
 
-@router.post("/categories", response_model=CategoryCreateResponse)
+@router.post("/", response_model=CategoryCreateResponse)
 async def create_category(
     session: DatabaseSession,
     category_data: CategoryCreate,
@@ -49,7 +49,7 @@ async def create_category(
     )
 
 
-@router.delete("/categories/{category_id}")
+@router.delete("/{category_id}")
 async def delete_category(
     session: DatabaseSession, current_user: UserAuthentication, category_id: int
 ):
