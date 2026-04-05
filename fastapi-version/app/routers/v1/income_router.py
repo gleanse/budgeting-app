@@ -34,7 +34,7 @@ async def get_incomes(session: DatabaseSession, current_user: UserAuthentication
             description=income.description,
             date_time=income.date_time,
         )
-        for income in incomes
+        for income, category_name in incomes
     ]
 
 
@@ -49,7 +49,7 @@ async def create_income(
     income_service = IncomeService(session)
 
     try:
-        created_income = income_service.create(
+        created_income, category_name = income_service.create(
             amount=income_data.amount,
             category_id=income_data.category_id,
             description=income_data.description,
@@ -64,7 +64,7 @@ async def create_income(
             id=created_income.id,
             amount=created_income.amount,
             category_id=created_income.category_id,
-            category_name=created_income.category.name,
+            category_name=category_name,
             description=created_income.description,
             date_time=created_income.date_time,
         ),

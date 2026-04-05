@@ -9,13 +9,13 @@ class IncomeService:
         self.income_repo = IncomeRepository(session)
         self.category_repo = CategoryRepository(session)
 
-    def list_by_user(self, user_id: int) -> list[Income]:
-        incomes = self.income_repo.get_all_by_user(user_id)
+    def list_by_user(self, user_id: int) -> list[tuple[Income, str | None]]:
+        incomes = self.income_repo.get_all_by_user_with_category(user_id)
         return incomes
 
     def create(
         self, amount: float, category_id: int, description: str, user_id: int
-    ) -> Income:
+    ) -> tuple[Income, str]:
         if amount <= 0:
             raise ValueError("Amount must be positive")
 
@@ -34,7 +34,7 @@ class IncomeService:
         )
         self.income_repo.add(new_income)
 
-        return new_income
+        return new_income, category.name
 
     def delete(self, income_id: int, user_id: int) -> Income:
         income = self.income_repo.get_by_id_and_user(income_id, user_id)
