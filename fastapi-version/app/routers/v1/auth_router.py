@@ -1,27 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session
-from typing import Annotated
-from app.database import get_session
-from app.core.auth_core import get_current_user
-from app.models import User
+from app.core.dependencies import UserAuthenticationDep, AuthServiceDep
 from app.schemas.v1.auth_schema import (
     UserCreate,
     UserResponse,
     UserCreateResponse,
     LoginResponse,
 )
-from app.services.v1.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-DatabaseSession = Annotated[Session, Depends(get_session)]
-UserAuthentication = Annotated[User, Depends(get_current_user)]
-
 
 @router.post("/register", response_model=UserCreateResponse)
-async def register_user(session: DatabaseSession, user_data: UserCreate):
-    auth_service = AuthService(session)
+async def register_user(auth_service: AuthServiceDep, user_data: UserCreate):
 
     try:
         registered_user = auth_service.register_user(
@@ -39,9 +30,8 @@ async def register_user(session: DatabaseSession, user_data: UserCreate):
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
-    session: DatabaseSession, form_data: OAuth2PasswordRequestForm = Depends()
+    auth_service: AuthServiceDep, form_data: OAuth2PasswordRequestForm = Depends()
 ):
-    auth_service = AuthService(session)
 
     try:
         access_token = auth_service.login(form_data.username, form_data.password)
@@ -56,5 +46,5 @@ async def login(
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
-async def logout(current_user: UserAuthentication):
+async def logout(current_user: UserAuthenticationDep):
     return {"message": "Successfully logged out"}

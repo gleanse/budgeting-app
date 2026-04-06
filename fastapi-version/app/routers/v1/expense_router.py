@@ -1,126 +1,90 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
-from typing import Annotated
-from app.database import get_session
-from app.core.auth_core import get_current_user
-from app.models import User, Expense, Category
+from fastapi import APIRouter, HTTPException, status
+from app.core.dependencies import UserAuthenticationDep, TransactionServiceDep
 from app.schemas.v1.expense_schema import (
     ExpenseCreate,
     ExpenseResponse,
     ExpenseCreateResponse,
+    ExpenseDelete,
+    ExpenseDeleteResponse,
 )
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
-DatabaseSession = Annotated[Session, Depends(get_session)]
-UserAuthentication = Annotated[User, Depends(get_current_user)]
-
 
 @router.get("/", response_model=list[ExpenseResponse])
-async def get_expenses(session: DatabaseSession, current_user: UserAuthentication):
-    statement = (
-        select(Expense, Category.name)
-        .outerjoin(Category)
-        .where(Expense.user_id == current_user.id)
-    )
-    results = session.exec(statement).all()
+async def get_expenses(
+    current_user: UserAuthenticationDep, transaction_service: TransactionServiceDep
+):
 
-    expenses = []
-    for expense, category_name in results:
-        expenses.append(
-            {
-                "id": expense.id,
-                "amount": expense.amount,
-                "category_id": expense.category_id or 0,
-                "category_name": category_name or "Uncategorized (OLD DATA)",
-                "description": expense.description,
-                "date_time": expense.date_time,
-            }
+    try:
+        expenses = transaction_service.list_by_user("expense", current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return [
+        ExpenseResponse(
+            id=expense.id,
+            amount=expense.amount,
+            category_id=expense.category_id or 0,
+            category_name=category_name if category_name else "Uncategorized",
+            description=expense.description,
+            date_time=expense.date_time,
         )
-
-    return expenses
+        for expense, category_name in expenses
+    ]
 
 
 @router.post("/", response_model=ExpenseCreateResponse)
 async def create_expense(
-    session: DatabaseSession,
+    current_user: UserAuthenticationDep,
+    transaction_service: TransactionServiceDep,
     expense_data: ExpenseCreate,
-    current_user: UserAuthentication,
 ):
-    if expense_data.amount <= 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Amount must be positive",
+
+    try:
+        created_expense, category_name = transaction_service.create(
+            transaction_type="expense",
+            amount=expense_data.amount,
+            category_id=expense_data.category_id,
+            description=expense_data.description,
+            user_id=current_user.id,
         )
-
-    statement = select(Category).where(
-        Category.id == expense_data.category_id,
-        Category.user_id == current_user.id,
-    )
-    category = session.exec(statement).first()
-
-    if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found",
-        )
-    elif category.type == "income":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid category use expense category",
-        )
-
-    new_expense = Expense(
-        amount=expense_data.amount,
-        category_id=expense_data.category_id,
-        description=expense_data.description,
-        user_id=current_user.id,
-    )
-
-    session.add(new_expense)
-    session.commit()
-    session.refresh(new_expense)
-
-    category = session.get(Category, new_expense.category_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     return ExpenseCreateResponse(
+        message="Expense created successfully",
         expense=ExpenseResponse(
-            id=new_expense.id,
-            amount=new_expense.amount,
-            category_id=new_expense.category_id,
-            category_name=category.name if category else "",
-            description=new_expense.description,
-            date_time=new_expense.date_time,
-        )
+            id=created_expense.id,
+            amount=created_expense.amount,
+            category_id=created_expense.category_id,
+            category_name=category_name if category_name else "Uncategorized",
+            description=created_expense.description,
+            date_time=created_expense.date_time,
+        ),
     )
 
 
 @router.delete("/{expense_id}")
 async def delete_expense(
-    session: DatabaseSession, current_user: UserAuthentication, expense_id: int
+    current_user: UserAuthenticationDep,
+    transaction_service: TransactionServiceDep,
+    expense_id: int,
 ):
-    statement = select(Expense).where(
-        Expense.id == expense_id,
-        Expense.user_id == current_user.id,
-    )
-    expense = session.exec(statement).first()
-
-    if not expense:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Expense record not found",
+    try:
+        deleted_expense = transaction_service.delete(
+            transaction_type="expense",
+            transaction_id=expense_id,
+            user_id=current_user.id,
         )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
-    deleted_expense = {
-        "id": expense.id,
-        "amount": expense.amount,
-        "category_id": expense.category_id,
-    }
-
-    session.delete(expense)
-    session.commit()
-
-    return {
-        "message": "Expense record deleted successfully",
-        "deleted_item": deleted_expense,
-    }
+    return ExpenseDeleteResponse(
+        message="Expense record deleted successfully",
+        deleted_item=ExpenseDelete(
+            id=deleted_expense.id,
+            amount=deleted_expense.amount,
+            category_id=deleted_expense.category_id,
+        ),
+    )

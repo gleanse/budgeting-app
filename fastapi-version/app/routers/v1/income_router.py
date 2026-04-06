@@ -1,9 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session
-from typing import Annotated
-from app.database import get_session
-from app.core.auth_core import get_current_user
-from app.models import User
+from fastapi import APIRouter, HTTPException, status
+from app.core.dependencies import UserAuthenticationDep, TransactionServiceDep
 from app.schemas.v1.income_schema import (
     IncomeCreate,
     IncomeResponse,
@@ -11,26 +7,26 @@ from app.schemas.v1.income_schema import (
     IncomeDelete,
     IncomeDeleteResponse,
 )
-from app.services.v1.income_service import IncomeService
 
 router = APIRouter(prefix="/incomes", tags=["incomes"])
 
-DatabaseSession = Annotated[Session, Depends(get_session)]
-UserAuthentication = Annotated[User, Depends(get_current_user)]
-
 
 @router.get("/", response_model=list[IncomeResponse])
-async def get_incomes(session: DatabaseSession, current_user: UserAuthentication):
-    income_service = IncomeService(session)
+async def get_incomes(
+    current_user: UserAuthenticationDep, transaction_service: TransactionServiceDep
+):
 
-    incomes = income_service.list_by_user(current_user.id)
+    try:
+        incomes = transaction_service.list_by_user("income", current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     return [
         IncomeResponse(
             id=income.id,
             amount=income.amount,
             category_id=income.category_id or 0,
-            category_name=income.category.name if income.category else "Uncategorized",
+            category_name=category_name if category_name else "Uncategorized",
             description=income.description,
             date_time=income.date_time,
         )
@@ -42,14 +38,14 @@ async def get_incomes(session: DatabaseSession, current_user: UserAuthentication
     "/", response_model=IncomeCreateResponse, status_code=status.HTTP_201_CREATED
 )
 async def create_income(
-    session: DatabaseSession,
+    current_user: UserAuthenticationDep,
+    transaction_service: TransactionServiceDep,
     income_data: IncomeCreate,
-    current_user: UserAuthentication,
 ):
-    income_service = IncomeService(session)
 
     try:
-        created_income, category_name = income_service.create(
+        created_income, category_name = transaction_service.create(
+            transaction_type="income",
             amount=income_data.amount,
             category_id=income_data.category_id,
             description=income_data.description,
@@ -64,7 +60,7 @@ async def create_income(
             id=created_income.id,
             amount=created_income.amount,
             category_id=created_income.category_id,
-            category_name=category_name,
+            category_name=category_name if category_name else "Uncategorized",
             description=created_income.description,
             date_time=created_income.date_time,
         ),
@@ -73,12 +69,17 @@ async def create_income(
 
 @router.delete("/{income_id}", response_model=IncomeDeleteResponse)
 async def delete_income(
-    session: DatabaseSession, current_user: UserAuthentication, income_id: int
+    current_user: UserAuthenticationDep,
+    transaction_service: TransactionServiceDep,
+    income_id: int,
 ):
-    income_service = IncomeService(session)
 
     try:
-        deleted_income = income_service.delete(income_id, current_user.id)
+        deleted_income = transaction_service.delete(
+            transaction_type="income",
+            transaction_id=income_id,
+            user_id=current_user.id,
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 

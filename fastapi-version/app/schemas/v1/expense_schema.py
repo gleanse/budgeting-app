@@ -20,3 +20,14 @@ class ExpenseResponse(BaseModel):
 class ExpenseCreateResponse(BaseModel):
     message: str = "Expense created successfully"
     expense: ExpenseResponse
+
+
+class ExpenseDelete(BaseModel):
+    id: int
+    amount: float
+    category_id: int
+
+
+class ExpenseDeleteResponse(BaseModel):
+    message: str = "Expense record deleted successfully"
+    deleted_item: ExpenseDelete

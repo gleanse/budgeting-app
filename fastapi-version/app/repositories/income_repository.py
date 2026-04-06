@@ -14,6 +14,7 @@ class IncomeRepository:
             .outerjoin(Category)
             .where(Income.user_id == user_id)
         )
+
         return self.session.exec(statement).all()
 
     def get_by_id_and_user(self, income_id: int, user_id: int) -> Income | None:
