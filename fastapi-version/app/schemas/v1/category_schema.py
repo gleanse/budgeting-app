@@ -22,3 +22,14 @@ class CategoryResponse(BaseModel):
 class CategoryCreateResponse(BaseModel):
     message: str = "Category created successfully"
     category: CategoryResponse
+
+
+class CategoryDelete(BaseModel):
+    id: int
+    name: str
+    type: str
+
+
+class CategoryDeleteResponse(BaseModel):
+    message: str = "Category deleted successfully"
+    deleted_item: CategoryDelete
