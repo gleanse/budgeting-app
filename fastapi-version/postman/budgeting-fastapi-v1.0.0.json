@@ -92,11 +92,27 @@
                   "pm.test(\"Has access token\", function() {\r",
                   "    const response = pm.response.json();\r",
                   "    pm.expect(response.access_token).to.exist;\r",
+                  "});\r",
+                  "\r",
+                  "// fetch account_id\r",
+                  "pm.sendRequest({\r",
+                  "    url: pm.environment.get(\"base_url\") + \"/api/v1/accounts\",\r",
+                  "    method: 'GET',\r",
+                  "    header: { 'Authorization': 'Bearer ' + response.access_token }\r",
+                  "}, (err, res) => {\r",
+                  "    pm.environment.set(\"account_id\", res.json()[0].id);\r",
                   "});"
                 ],
                 "type": "text/javascript",
                 "packages": {},
                 "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "packages": {},
+                "type": "text/javascript"
               }
             }
           ],
@@ -249,7 +265,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"amount\": 100,\r\n    \"category_id\": {{income_category_id}},\r\n    \"description\": \"Customer Tip\"\r\n}",
+              "raw": "{\r\n    \"amount\": 100,\r\n    \"category_id\": {{income_category_id}},\r\n    \"account_id\": {{account_id}},\r\n    \"description\": \"Customer Tip\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -294,8 +310,12 @@
             {
               "listen": "prerequest",
               "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
                 "packages": {},
-                "type": "text/javascript"
+                "requests": {}
               }
             }
           ],
@@ -304,7 +324,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"amount\": 500,\r\n    \"category_id\": {{expense_category_id}},\r\n    \"description\": \"Lunch\"\r\n}",
+              "raw": "{\r\n    \"amount\": 500,\r\n    \"category_id\": {{expense_category_id}},\r\n    \"account_id\": {{account_id}},\r\n    \"description\": \"Lunch\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -382,6 +402,25 @@
                 "api",
                 "v1",
                 "expenses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "accounts"
               ]
             }
           },

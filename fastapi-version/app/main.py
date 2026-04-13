@@ -8,6 +8,7 @@ from app.routers.v1 import (
     category_router,
     expense_router,
     income_router,
+    account_router,
 )
 
 
@@ -33,6 +34,7 @@ app.include_router(income_router.router, prefix="/api/v1")
 app.include_router(expense_router.router, prefix="/api/v1")
 app.include_router(category_router.router, prefix="/api/v1")
 app.include_router(balance_router.router, prefix="/api/v1")
+app.include_router(account_router.router, prefix="/api/v1")
 
 
 @app.get("/")

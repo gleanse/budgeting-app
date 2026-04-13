@@ -5,6 +5,7 @@ from datetime import datetime
 class ExpenseCreate(BaseModel):
     amount: float
     category_id: int
+    account_id: int
     description: str
 
 
@@ -13,6 +14,8 @@ class ExpenseResponse(BaseModel):
     amount: float
     category_id: int
     category_name: str
+    account_id: int
+    account_name: str
     description: str
     date_time: datetime
 

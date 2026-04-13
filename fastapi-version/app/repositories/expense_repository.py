@@ -1,10 +1,14 @@
 from sqlmodel import Session, select
-from app.models import Expense, Category
+from app.models import Expense, Category, Account
 
 
 class ExpenseRepository:
     def __init__(self, session: Session):
         self.session = session
+
+    def exists_by_category(self, category_id: int) -> bool:
+        statement = select(Expense).where(Expense.category_id == category_id)
+        return self.session.exec(statement).first() is not None
 
     def get_all_by_user_with_category(
         self, user_id: int
@@ -15,6 +19,15 @@ class ExpenseRepository:
             .where(Expense.user_id == user_id)
         )
 
+        return self.session.exec(statement).all()
+
+    def get_all_by_user_with_category_and_account(self, user_id: int):
+        statement = (
+            select(Expense, Category.name, Account.name)
+            .outerjoin(Category, Expense.category_id == Category.id)
+            .outerjoin(Account, Expense.account_id == Account.id)
+            .where(Expense.user_id == user_id)
+        )
         return self.session.exec(statement).all()
 
     def get_by_id_and_user(self, expense_id: int, user_id: int) -> Expense | None:

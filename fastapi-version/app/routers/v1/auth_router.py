@@ -11,8 +11,12 @@ from app.schemas.v1.auth_schema import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserCreateResponse)
-async def register_user(auth_service: AuthServiceDep, user_data: UserCreate):
+@router.post(
+    "/register", response_model=UserCreateResponse, status_code=status.HTTP_201_CREATED
+)
+async def register_user(
+    auth_service: AuthServiceDep, user_data: UserCreate
+) -> UserCreateResponse:
 
     try:
         registered_user = auth_service.register_user(
@@ -24,14 +28,13 @@ async def register_user(auth_service: AuthServiceDep, user_data: UserCreate):
 
     return UserCreateResponse(
         user=UserResponse(id=registered_user.id, username=registered_user.username),
-        message="User created successfully",
     )
 
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
     auth_service: AuthServiceDep, form_data: OAuth2PasswordRequestForm = Depends()
-):
+) -> LoginResponse:
 
     try:
         access_token = auth_service.login(form_data.username, form_data.password)

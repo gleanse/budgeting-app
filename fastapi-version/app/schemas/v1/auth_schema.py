@@ -12,8 +12,8 @@ class UserResponse(BaseModel):
 
 
 class UserCreateResponse(BaseModel):
+    message: str = "User created successfully"
     user: UserResponse
-    message: str
 
 
 class LoginResponse(BaseModel):
