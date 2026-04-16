@@ -10,6 +10,10 @@ class IncomeRepository:
         statement = select(Income).where(Income.category_id == category_id)
         return self.session.exec(statement).first() is not None
 
+    def get_all_by_user(self, user_id: int) -> list[Income]:
+        statement = select(Income).where(Income.user_id == user_id)
+        return self.session.exec(statement).all()
+
     def get_all_by_user_with_category(
         self, user_id: int
     ) -> list[tuple[Income, str | None]]:

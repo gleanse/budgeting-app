@@ -10,6 +10,10 @@ class ExpenseRepository:
         statement = select(Expense).where(Expense.category_id == category_id)
         return self.session.exec(statement).first() is not None
 
+    def get_all_by_user(self, user_id: int) -> list[Expense]:
+        statement = select(Expense).where(Expense.user_id == user_id)
+        return self.session.exec(statement).all()
+
     def get_all_by_user_with_category(
         self, user_id: int
     ) -> list[tuple[Expense, str | None]]:
