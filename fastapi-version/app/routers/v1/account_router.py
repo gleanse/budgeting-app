@@ -1,16 +1,20 @@
 from fastapi import APIRouter
-from app.core.dependencies import UserAuthenticationDep, DatabaseSessionDep
-from app.models import Account
-from sqlmodel import select
+from app.core.dependencies import UserAuthenticationDep, AccountServiceDep
+from app.schemas.v1.account_schema import AccountResponse, AccountBalanceResponse
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 
-# TODO: wip temporary for testing
-@router.get("/")
+@router.get("/", response_model=list[AccountResponse])
 async def get_my_accounts(
-    current_user: UserAuthenticationDep, session: DatabaseSessionDep
+    current_user: UserAuthenticationDep, account_service: AccountServiceDep
 ):
-    statement = select(Account).where(Account.user_id == current_user.id)
-    accounts = session.exec(statement).all()
-    return [{"id": a.id, "name": a.name} for a in accounts]
+    return account_service.list_by_user(current_user.id)
+
+
+@router.get("/balance", response_model=AccountBalanceResponse)
+async def get_total_balance(
+    current_user: UserAuthenticationDep, account_service: AccountServiceDep
+):
+    balance = account_service.account_balance(current_user.id)
+    return AccountBalanceResponse(total_balance=balance)
