@@ -9,6 +9,7 @@ class AccountResponse(BaseModel):
     id: int
     name: str
 
+
 class AccountBalanceResponse(BaseModel):
     total_balance: float
 
@@ -16,6 +17,7 @@ class AccountBalanceResponse(BaseModel):
 class AccountCreateResponse(BaseModel):
     message: str = "Account created successfully"
     account: AccountResponse
+
 
 class AccountDelete(BaseModel):
     id: int
