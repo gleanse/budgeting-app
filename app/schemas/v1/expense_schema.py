@@ -5,9 +5,10 @@ from decimal import Decimal
 
 class ExpenseCreateRequest(BaseModel):
     amount: Decimal
-    category_id: int
+    category_id: int | None = None
     account_id: int
-    description: str
+    description: str | None = None
+    date_time: datetime | None = None
 
 
 class ExpensePatchRequest(BaseModel):
@@ -15,6 +16,7 @@ class ExpensePatchRequest(BaseModel):
     category_id: int | None = None
     account_id: int | None = None
     description: str | None = None
+    date_time: datetime | None = None
 
 
 class ExpenseListResponse(BaseModel):
@@ -28,11 +30,11 @@ class ExpenseListResponse(BaseModel):
 class ExpenseDetailResponse(BaseModel):
     id: int
     amount: Decimal
-    category_id: int
+    category_id: int | None
     category_name: str
     account_id: int
     account_name: str
-    description: str
+    description: str | None
     date_time: datetime
 
 

@@ -117,7 +117,7 @@ class Income(SQLModel, table=True):
     category_id: int | None = Field(
         default=None, foreign_key="categories.id", index=True
     )
-    description: str
+    description: str | None = Field(default=None)
     date_time: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
@@ -137,7 +137,7 @@ class Expense(SQLModel, table=True):
     category_id: int | None = Field(
         default=None, foreign_key="categories.id", index=True
     )
-    description: str
+    description: str | None = Field(default=None)
     date_time: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
