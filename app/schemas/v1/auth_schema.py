@@ -1,9 +1,14 @@
 from pydantic import BaseModel
 
 
-class UserCreate(BaseModel):
+class UserCreateRequest(BaseModel):
     username: str
     password: str
+
+
+class UserPatchRequest(BaseModel):
+    username: str | None = None
+    password: str | None = None
 
 
 class UserResponse(BaseModel):
@@ -13,7 +18,7 @@ class UserResponse(BaseModel):
 
 class UserCreateResponse(BaseModel):
     message: str = "User created successfully"
-    user: UserResponse
+    created_item: UserResponse
 
 
 class LoginResponse(BaseModel):

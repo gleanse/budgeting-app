@@ -69,14 +69,15 @@ class Account(SQLModel, table=True):
     )
 
 
+# NOTE: month/year for now for simplicity later prolly use period start/end
 class Budget(SQLModel, table=True):
     __tablename__ = "budgets"
-    __table_args__ = (UniqueConstraint("user_id", "category_id", "period_start"),)
+    __table_args__ = (UniqueConstraint("user_id", "category_id", "month", "year"),)
 
     id: int | None = Field(default=None, primary_key=True)
     limit_amount: Decimal = Field(gt=0)
-    period_start: datetime
-    period_end: datetime
+    month: int = Field(ge=1, le=12)
+    year: int = Field(ge=2000, le=2100)
     user_id: int = Field(foreign_key="users.id", index=True)
     category_id: int = Field(foreign_key="categories.id", index=True)
 

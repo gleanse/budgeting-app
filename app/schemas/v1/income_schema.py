@@ -1,17 +1,33 @@
 from pydantic import BaseModel
 from datetime import datetime
+from decimal import Decimal
 
 
-class IncomeCreate(BaseModel):
-    amount: float
+class IncomeCreateRequest(BaseModel):
+    amount: Decimal
     category_id: int
     account_id: int
     description: str
 
 
-class IncomeResponse(BaseModel):
+class IncomePatchRequest(BaseModel):
+    amount: Decimal | None = None
+    category_id: int | None = None
+    account_id: int | None = None
+    description: str | None = None
+
+
+class IncomeListResponse(BaseModel):
     id: int
-    amount: float
+    amount: Decimal
+    category_name: str
+    account_name: str
+    date_time: datetime
+
+
+class IncomeDetailResponse(BaseModel):
+    id: int
+    amount: Decimal
     category_id: int
     category_name: str
     account_id: int
@@ -22,15 +38,4 @@ class IncomeResponse(BaseModel):
 
 class IncomeCreateResponse(BaseModel):
     message: str = "Income created successfully"
-    income: IncomeResponse
-
-
-class IncomeDelete(BaseModel):
-    id: int
-    amount: float
-    category_id: int
-
-
-class IncomeDeleteResponse(BaseModel):
-    message: str = "Income record deleted successfully"
-    deleted_item: IncomeDelete
+    created_item: IncomeDetailResponse

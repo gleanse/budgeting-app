@@ -1,17 +1,33 @@
 from pydantic import BaseModel
 from datetime import datetime
+from decimal import Decimal
 
 
-class ExpenseCreate(BaseModel):
-    amount: float
+class ExpenseCreateRequest(BaseModel):
+    amount: Decimal
     category_id: int
     account_id: int
     description: str
 
 
-class ExpenseResponse(BaseModel):
+class ExpensePatchRequest(BaseModel):
+    amount: Decimal | None = None
+    category_id: int | None = None
+    account_id: int | None = None
+    description: str | None = None
+
+
+class ExpenseListResponse(BaseModel):
     id: int
-    amount: float
+    amount: Decimal
+    category_name: str
+    account_name: str
+    date_time: datetime
+
+
+class ExpenseDetailResponse(BaseModel):
+    id: int
+    amount: Decimal
     category_id: int
     category_name: str
     account_id: int
@@ -22,15 +38,4 @@ class ExpenseResponse(BaseModel):
 
 class ExpenseCreateResponse(BaseModel):
     message: str = "Expense created successfully"
-    expense: ExpenseResponse
-
-
-class ExpenseDelete(BaseModel):
-    id: int
-    amount: float
-    category_id: int
-
-
-class ExpenseDeleteResponse(BaseModel):
-    message: str = "Expense record deleted successfully"
-    deleted_item: ExpenseDelete
+    created_item: ExpenseDetailResponse

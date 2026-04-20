@@ -1,29 +1,24 @@
 from pydantic import BaseModel
+from decimal import Decimal
 
 
-class AccountCreate(BaseModel):
+class AccountCreateRequest(BaseModel):
     name: str
+    initial_balance: Decimal
+
+
+class AccountPatchRequest(BaseModel):
+    name: str | None = None
 
 
 class AccountResponse(BaseModel):
     id: int
+    user_id: int
     name: str
-
-
-class AccountBalanceResponse(BaseModel):
-    total_balance: float
+    initial_balance: Decimal
+    total_balance: Decimal
 
 
 class AccountCreateResponse(BaseModel):
     message: str = "Account created successfully"
-    account: AccountResponse
-
-
-class AccountDelete(BaseModel):
-    id: int
-    name: str
-
-
-class AccountDeleteResponse(BaseModel):
-    message: str = "Account deleted successfully"
-    deleted_item: AccountDelete
+    created_item: AccountResponse
