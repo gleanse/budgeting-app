@@ -20,7 +20,8 @@ class CategoryRepository:
 
         return self.session.exec(statement).first()
 
-    def add(self, category: Category) -> Category:
+    def save(self, category: Category) -> Category:
+        """insert or update category"""
         self.session.add(category)
         self.session.commit()
         self.session.refresh(category)

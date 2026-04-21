@@ -16,7 +16,8 @@ class AccountRepository:
         )
         return self.session.exec(statement).first()
 
-    def add(self, account: Account) -> Account:
+    def save(self, account: Account) -> Account:
+        """insert or update account"""
         self.session.add(account)
         self.session.commit()
         self.session.refresh(account)

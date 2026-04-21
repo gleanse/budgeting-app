@@ -42,7 +42,8 @@ class ExpenseRepository:
 
         return self.session.exec(statement).first()
 
-    def add(self, expense: Expense) -> Expense:
+    def save(self, expense: Expense) -> Expense:
+        """insert or update expense"""
         self.session.add(expense)
         self.session.commit()
         self.session.refresh(expense)

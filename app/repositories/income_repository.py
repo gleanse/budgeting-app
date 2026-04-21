@@ -42,7 +42,8 @@ class IncomeRepository:
 
         return self.session.exec(statement).first()
 
-    def add(self, income: Income) -> Income:
+    def save(self, income: Income) -> Income:
+        """insert or update income"""
         self.session.add(income)
         self.session.commit()
         self.session.refresh(income)

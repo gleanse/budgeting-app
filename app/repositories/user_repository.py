@@ -10,7 +10,8 @@ class UserRepository:
         statement = select(User).where(User.username == username)
         return self.session.exec(statement).first()
 
-    def add(self, user: User) -> User:
+    def save(self, user: User) -> User:
+        """insert or update user"""
         self.session.add(user)
         self.session.commit()
         self.session.refresh(user)
