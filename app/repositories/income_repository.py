@@ -25,7 +25,9 @@ class IncomeRepository:
 
         return self.session.exec(statement).all()
 
-    def get_all_by_user_with_category_and_account(self, user_id: int):
+    def get_all_by_user_with_category_and_account(
+        self, user_id: int
+    ) -> list[tuple[Income, str | None, str | None]]:
         statement = (
             select(Income, Category.name, Account.name)
             .outerjoin(Category, Income.category_id == Category.id)
