@@ -24,6 +24,22 @@ class TransactionService:
         else:
             raise ValueError(f"Invalid transaction type: {transaction_type}")
 
+    def get_detail_by_id_and_user(
+        self, transaction_type: str, transaction_id: int, user_id: int
+    ) -> tuple[Income, str | None, str | None]:
+        if transaction_type == "income":
+            income = self.income_repo.get_by_id_and_user_with_category_and_account(
+                transaction_id, user_id
+            )
+        else:
+            income = self.expense_repo.get_by_id_and_user_with_category_and_account(
+                transaction_id, user_id
+            )
+        if income is None:
+            raise ValueError(f"{transaction_type} not found")
+
+        return income
+
     def create(
         self,
         transaction_type: str,
@@ -75,16 +91,25 @@ class TransactionService:
 
         return new_transaction, category.name, account.name
 
-    def update(self, transaction_id: int, user_id: int, **kwargs) -> Income | Expense:
-        transaction = self.income_repo.get_by_id_and_user(transaction_id, user_id)
+    def update(
+        self, transaction_id: int, user_id: int, **kwargs
+    ) -> tuple[Income | Expense, str | None, str | None]:
+        result = self.income_repo.get_by_id_and_user_with_category_and_account(
+            transaction_id, user_id
+        )
         is_income = True
 
-        if not transaction:
-            transaction = self.expense_repo.get_by_id_and_user(transaction_id, user_id)
+        if not result:
+            result = self.expense_repo.get_by_id_and_user_with_category_and_account(
+                transaction_id, user_id
+            )
             is_income = False
 
-        if not transaction:
+        if not result:
             raise ValueError("Transaction not found")
+
+        # unpack tuple result
+        transaction, category_name, account_name = result
 
         # check if category type is changing
         new_category_id = kwargs.get("category_id")
@@ -109,26 +134,23 @@ class TransactionService:
                 setattr(transaction, key, value)
 
         if is_income:
-            return self.income_repo.save(transaction)
+            saved = self.income_repo.save(transaction)
         else:
-            return self.expense_repo.save(transaction)
+            saved = self.expense_repo.save(transaction)
 
-    def delete(self, transaction_id: int, user_id: int) -> Income | Expense:
-        transaction = self.income_repo.get_by_id_and_user(transaction_id, user_id)
+        return saved, category_name, account_name
 
-        if not transaction:
-            transaction = self.expense_repo.get_by_id_and_user(transaction_id, user_id)
-
-        if not transaction:
-            raise ValueError("Transaction not found")
-
-        # check what instance of object is the transaction to use proper repo method
-        if isinstance(transaction, Income):
+    def delete(self, transaction_type: str, transaction_id: int, user_id: int) -> None:
+        if transaction_type == "income":
+            transaction = self.income_repo.get_by_id_and_user(transaction_id, user_id)
+            if not transaction:
+                raise ValueError("Income not found")
             self.income_repo.delete(transaction)
         else:
+            transaction = self.expense_repo.get_by_id_and_user(transaction_id, user_id)
+            if not transaction:
+                raise ValueError("Expense not found")
             self.expense_repo.delete(transaction)
-
-        return transaction
 
     # PRIVATE helper methods
     def _convert_transaction(self, old_transaction, new_category, user_id, **kwargs):
@@ -159,6 +181,15 @@ class TransactionService:
                 user_id=user_id,
             )
             self.income_repo.save(new_transaction)
+
+            result = self.income_repo.get_by_id_and_user_with_category_and_account(
+                new_transaction.id, user_id
+            )
+            if result:
+                new_transaction, category_name, account_name = result
+            else:
+                category_name = None
+                account_name = None
         else:
             new_transaction = Expense(
                 amount=amount,
@@ -170,4 +201,13 @@ class TransactionService:
             )
             self.expense_repo.save(new_transaction)
 
-        return new_transaction
+            result = self.expense_repo.get_by_id_and_user_with_category_and_account(
+                new_transaction.id, user_id
+            )
+            if result:
+                new_transaction, category_name, account_name = result
+            else:
+                category_name = None
+                account_name = None
+
+        return new_transaction, category_name, account_name

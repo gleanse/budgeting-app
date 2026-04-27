@@ -44,6 +44,17 @@ class IncomeRepository:
 
         return self.session.exec(statement).first()
 
+    def get_by_id_and_user_with_category_and_account(
+        self, income_id: int, user_id: int
+    ) -> tuple[Income, str | None, str | None] | None:
+        statement = (
+            select(Income, Category.name, Account.name)
+            .outerjoin(Category, Income.category_id == Category.id)
+            .outerjoin(Account, Income.account_id == Account.id)
+            .where(Income.user_id == user_id, Income.id == income_id)
+        )
+        return self.session.exec(statement).first()
+
     def save(self, income: Income) -> Income:
         """insert or update income"""
         self.session.add(income)

@@ -25,7 +25,9 @@ class ExpenseRepository:
 
         return self.session.exec(statement).all()
 
-    def get_all_by_user_with_category_and_account(self, user_id: int):
+    def get_all_by_user_with_category_and_account(
+        self, user_id: int
+    ) -> list[tuple[Expense, str | None, str | None]]:
         statement = (
             select(Expense, Category.name, Account.name)
             .outerjoin(Category, Expense.category_id == Category.id)
@@ -40,6 +42,17 @@ class ExpenseRepository:
             Expense.user_id == user_id,
         )
 
+        return self.session.exec(statement).first()
+
+    def get_by_id_and_user_with_category_and_account(
+        self, expense_id: int, user_id: int
+    ) -> tuple[Expense, str | None, str | None] | None:
+        statement = (
+            select(Expense, Category.name, Account.name)
+            .outerjoin(Category, Expense.category_id == Category.id)
+            .outerjoin(Account, Expense.account_id == Account.id)
+            .where(Expense.user_id == user_id, Expense.id == expense_id)
+        )
         return self.session.exec(statement).first()
 
     def save(self, expense: Expense) -> Expense:

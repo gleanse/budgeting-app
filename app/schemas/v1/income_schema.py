@@ -11,7 +11,7 @@ class IncomeCreateRequest(BaseModel):
     date_time: datetime | None = None
 
 
-class IncomePatchRequest(BaseModel):
+class IncomeUpdateRequest(BaseModel):
     amount: Decimal | None = None
     category_id: int | None = None
     account_id: int | None = None
