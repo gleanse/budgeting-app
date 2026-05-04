@@ -11,7 +11,7 @@ class ExpenseCreateRequest(BaseModel):
     date_time: datetime | None = None
 
 
-class ExpensePatchRequest(BaseModel):
+class ExpenseUpdateRequest(BaseModel):
     amount: Decimal | None = None
     category_id: int | None = None
     account_id: int | None = None
