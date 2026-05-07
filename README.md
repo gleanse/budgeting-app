@@ -137,6 +137,18 @@ The collection includes pre-request and post-response scripts that automatically
 
 ---
 
+## Testing
+
+### Sync the test database schema
+
+The test database (`budgeting_fastapi_db_test`) is created automatically on container init via `init.sql`. To apply migrations to it, override `DATABASE_URL` when running alembic:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/budgeting_fastapi_db_test alembic upgrade head
+```
+
+---
+
 ## Known Limitations (v1.0.0)
 
 - No update (PATCH/PUT) endpoints yet — coming in v1.1.0
