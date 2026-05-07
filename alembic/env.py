@@ -1,13 +1,12 @@
 from logging.config import fileConfig
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, create_engine
 from alembic import context
 from decouple import config as decouple_config
 import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from app.models import User, Income, Expense, Category
-from app.database import engine
+from app import models
 
 # This is the important line
 target_metadata = SQLModel.metadata
@@ -38,8 +37,8 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    # Use your existing engine from database.py
-    connectable = engine
+    # just directly use the db url so its sync and easy to override
+    connectable = create_engine(db_url)
 
     with connectable.connect() as connection:
         context.configure(
