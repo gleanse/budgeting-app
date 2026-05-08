@@ -63,6 +63,6 @@ class ExpenseRepository:
 
         return expense
 
-    def delete(self, expense: Expense):
+    def delete(self, expense: Expense) -> None:
         self.session.delete(expense)
         self.session.commit()

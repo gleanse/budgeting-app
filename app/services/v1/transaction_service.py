@@ -150,7 +150,9 @@ class TransactionService:
             self.expense_repo.delete(transaction)
 
     # PRIVATE helper methods
-    def _convert_transaction(self, old_transaction, new_category, user_id, **kwargs):
+    def _convert_transaction(
+        self, old_transaction, new_category, user_id, **kwargs
+    ) -> tuple[Income | Expense, str | None, str | None]:
         """convert transaction to opposite type"""
         # NOTE: ignore the unhighlighted words as my linter is dumb
         # extract data (new category already validated)

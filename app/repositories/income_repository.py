@@ -63,6 +63,6 @@ class IncomeRepository:
 
         return income
 
-    def delete(self, income: Income):
+    def delete(self, income: Income) -> None:
         self.session.delete(income)
         self.session.commit()
