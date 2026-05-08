@@ -55,11 +55,11 @@ class TransactionService:
             raise ValueError("Amount must be positive")
 
         category = self.category_repo.get_by_id_and_user(category_id, user_id)
-        if not category:
+        if category is None:
             raise ValueError("Category not found")
 
         account = self.account_repo.get_by_id_and_user(account_id, user_id)
-        if not account:
+        if account is None:
             raise ValueError("Account not found")
 
         if category.type != transaction_type:
@@ -96,13 +96,13 @@ class TransactionService:
         )
         is_income = True
 
-        if not result:
+        if result is None:
             result = self.expense_repo.get_by_id_and_user_with_category_and_account(
                 transaction_id, user_id
             )
             is_income = False
 
-        if not result:
+        if result is None:
             raise ValueError("Transaction not found")
 
         # unpack tuple result
@@ -114,7 +114,7 @@ class TransactionService:
             new_category = self.category_repo.get_by_id_and_user(
                 new_category_id, user_id
             )
-            if not new_category:
+            if new_category is None:
                 raise ValueError("Category not found")
 
             expected_type = "income" if is_income else "expense"
@@ -140,12 +140,12 @@ class TransactionService:
     def delete(self, transaction_type: str, transaction_id: int, user_id: int) -> None:
         if transaction_type == "income":
             transaction = self.income_repo.get_by_id_and_user(transaction_id, user_id)
-            if not transaction:
+            if transaction is None:
                 raise ValueError("Income not found")
             self.income_repo.delete(transaction)
         else:
             transaction = self.expense_repo.get_by_id_and_user(transaction_id, user_id)
-            if not transaction:
+            if transaction is None:
                 raise ValueError("Expense not found")
             self.expense_repo.delete(transaction)
 
