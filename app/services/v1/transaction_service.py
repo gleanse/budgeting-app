@@ -21,24 +21,24 @@ class TransactionService:
             return self.income_repo.get_all_by_user_with_category_and_account(user_id)
         elif transaction_type == "expense":
             return self.expense_repo.get_all_by_user_with_category_and_account(user_id)
-        else:
-            raise ValueError(f"Invalid transaction type: {transaction_type}")
 
     def get_detail_by_id_and_user(
         self, transaction_type: str, transaction_id: int, user_id: int
-    ) -> tuple[Income, str | None, str | None]:
+    ) -> tuple[Income | Expense, str | None, str | None]:
         if transaction_type == "income":
-            income = self.income_repo.get_by_id_and_user_with_category_and_account(
+            transaction = self.income_repo.get_by_id_and_user_with_category_and_account(
                 transaction_id, user_id
             )
         else:
-            income = self.expense_repo.get_by_id_and_user_with_category_and_account(
-                transaction_id, user_id
+            transaction = (
+                self.expense_repo.get_by_id_and_user_with_category_and_account(
+                    transaction_id, user_id
+                )
             )
-        if income is None:
+        if transaction is None:
             raise ValueError(f"{transaction_type} not found")
 
-        return income
+        return transaction
 
     def create(
         self,
@@ -50,9 +50,6 @@ class TransactionService:
         user_id: int,
         date_time: datetime | None = None,
     ) -> tuple[Income | Expense, str, str]:
-
-        if transaction_type not in ("income", "expense"):
-            raise ValueError(f"Invalid transaction type: {transaction_type}")
 
         if amount <= 0:
             raise ValueError("Amount must be positive")
@@ -77,7 +74,7 @@ class TransactionService:
                 user_id=user_id,
                 date_time=date_time,
             )
-            self.income_repo.add(new_transaction)
+            self.income_repo.save(new_transaction)
         else:
             new_transaction = Expense(
                 amount=amount,
@@ -87,7 +84,7 @@ class TransactionService:
                 user_id=user_id,
                 date_time=date_time,
             )
-            self.expense_repo.add(new_transaction)
+            self.expense_repo.save(new_transaction)
 
         return new_transaction, category.name, account.name
 
