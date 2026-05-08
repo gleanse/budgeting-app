@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException, status
 from app.core.dependencies import UserAuthenticationDep, CategoryServiceDep
 from app.schemas.v1.category_schema import (
-    CategoryCreate,
+    CategoryCreateRequest,
+    CategoryUpdateRequest,
     CategoryResponse,
     CategoryCreateResponse,
-    CategoryDelete,
-    CategoryDeleteResponse,
 )
 
 router = APIRouter(prefix="/categories", tags=["categories"])
@@ -18,13 +17,25 @@ async def get_categories(
     return category_service.list_by_user(current_user.id)
 
 
+@router.get("/{category_id}", response_model=CategoryResponse)
+async def get_category(
+    current_user: UserAuthenticationDep,
+    category_service: CategoryServiceDep,
+    category_id: int,
+) -> CategoryResponse:
+    try:
+        return category_service.get_by_id_and_user(category_id, current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
 @router.post(
     "/", response_model=CategoryCreateResponse, status_code=status.HTTP_201_CREATED
 )
 async def create_category(
     current_user: UserAuthenticationDep,
     category_service: CategoryServiceDep,
-    category_data: CategoryCreate,
+    category_data: CategoryCreateRequest,
 ) -> CategoryCreateResponse:
 
     try:
@@ -37,7 +48,7 @@ async def create_category(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     return CategoryCreateResponse(
-        category=CategoryResponse(
+        created_item=CategoryResponse(
             id=created_category.id,
             name=created_category.name,
             type=created_category.type,
@@ -46,27 +57,40 @@ async def create_category(
     )
 
 
-@router.delete("/{category_id}", response_model=CategoryDeleteResponse)
-async def delete_category(
+@router.patch("/{category_id}", response_model=CategoryResponse)
+async def update_category(
     current_user: UserAuthenticationDep,
     category_service: CategoryServiceDep,
     category_id: int,
-) -> CategoryDeleteResponse:
-
+    category_data: CategoryUpdateRequest,
+) -> CategoryResponse:
     try:
-        deleted_category = category_service.delete(
-            id=category_id, user_id=current_user.id
+        updated_category = category_service.update(
+            category_id=category_id,
+            user_id=current_user.id,
+            name=category_data.name,
+            type=category_data.type,
         )
     except ValueError as e:
         if "not found" in str(e):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
         else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
-    return CategoryDeleteResponse(
-        deleted_item=CategoryDelete(
-            id=deleted_category.id,
-            name=deleted_category.name,
-            type=deleted_category.type,
-        )
-    )
+    return updated_category
+
+
+@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_category(
+    current_user: UserAuthenticationDep,
+    category_service: CategoryServiceDep,
+    category_id: int,
+) -> None:
+
+    try:
+        category_service.delete(category_id=category_id, user_id=current_user.id)
+    except ValueError as e:
+        if "not found" in str(e):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        else:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))

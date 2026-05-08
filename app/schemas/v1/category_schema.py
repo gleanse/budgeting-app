@@ -12,7 +12,7 @@ class CategoryCreateRequest(BaseModel):
     type: CategoryType
 
 
-class CategoryPatchRequest(BaseModel):
+class CategoryUpdateRequest(BaseModel):
     name: str | None = None
     type: CategoryType | None = None
 

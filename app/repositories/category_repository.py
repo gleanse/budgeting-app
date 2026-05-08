@@ -28,6 +28,6 @@ class CategoryRepository:
 
         return category
 
-    def delete(self, category: Category):
+    def delete(self, category: Category) -> None:
         self.session.delete(category)
         self.session.commit()
