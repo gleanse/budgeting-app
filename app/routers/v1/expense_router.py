@@ -15,11 +15,7 @@ router = APIRouter(prefix="/expenses", tags=["expenses"])
 async def get_expenses(
     current_user: UserAuthenticationDep, transaction_service: TransactionServiceDep
 ) -> list[ExpenseListResponse]:
-
-    try:
-        expenses = transaction_service.list_by_user("expense", current_user.id)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    expenses = transaction_service.list_by_user("expense", current_user.id)
 
     return [
         ExpenseListResponse(
@@ -70,7 +66,6 @@ async def create_expense(
     transaction_service: TransactionServiceDep,
     expense_data: ExpenseCreateRequest,
 ) -> ExpenseCreateResponse:
-
     try:
         created_expense, category_name, account_name = transaction_service.create(
             transaction_type="expense",
@@ -81,7 +76,13 @@ async def create_expense(
             user_id=current_user.id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        error = str(e)
+        if "not found" in error.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error)
+        elif "invalid category" in error.lower():
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=error)
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
     return ExpenseCreateResponse(
         expense=ExpenseDetailResponse(
@@ -113,10 +114,11 @@ async def update_expense(
             **update_data,
         )
     except ValueError as e:
-        if "Transaction not found" in str(e):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        error = str(e)
+        if "not found" in error.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error)
         else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
     return ExpenseDetailResponse(
         id=updated_transaction.id,
@@ -144,5 +146,3 @@ async def delete_expense(
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-
-    return None

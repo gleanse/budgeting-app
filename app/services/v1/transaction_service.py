@@ -19,7 +19,7 @@ class TransactionService:
     ) -> list[tuple[Income | Expense, str | None, str | None]]:
         if transaction_type == "income":
             return self.income_repo.get_all_by_user_with_category_and_account(user_id)
-        elif transaction_type == "expense":
+        else:
             return self.expense_repo.get_all_by_user_with_category_and_account(user_id)
 
     def get_detail_by_id_and_user(
@@ -50,7 +50,6 @@ class TransactionService:
         user_id: int,
         date_time: datetime | None = None,
     ) -> tuple[Income | Expense, str, str]:
-
         if amount <= 0:
             raise ValueError("Amount must be positive")
 
@@ -104,6 +103,10 @@ class TransactionService:
 
         if result is None:
             raise ValueError("Transaction not found")
+
+        amount = kwargs.get("amount")
+        if amount is not None and amount <= 0:
+            raise ValueError("Amount must be positive")
 
         # unpack tuple result
         transaction, category_name, account_name = result
@@ -184,7 +187,7 @@ class TransactionService:
             result = self.income_repo.get_by_id_and_user_with_category_and_account(
                 new_transaction.id, user_id
             )
-            if result:
+            if result is not None:
                 new_transaction, category_name, account_name = result
             else:
                 category_name = None
@@ -203,7 +206,7 @@ class TransactionService:
             result = self.expense_repo.get_by_id_and_user_with_category_and_account(
                 new_transaction.id, user_id
             )
-            if result:
+            if result is not None:
                 new_transaction, category_name, account_name = result
             else:
                 category_name = None

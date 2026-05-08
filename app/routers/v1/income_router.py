@@ -15,11 +15,7 @@ router = APIRouter(prefix="/incomes", tags=["incomes"])
 async def get_incomes(
     current_user: UserAuthenticationDep, transaction_service: TransactionServiceDep
 ) -> list[IncomeListResponse]:
-
-    try:
-        incomes = transaction_service.list_by_user("income", current_user.id)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    incomes = transaction_service.list_by_user("income", current_user.id)
 
     return [
         IncomeListResponse(
@@ -70,7 +66,6 @@ async def create_income(
     transaction_service: TransactionServiceDep,
     income_data: IncomeCreateRequest,
 ) -> IncomeCreateResponse:
-
     try:
         created_income, category_name, account_name = transaction_service.create(
             transaction_type="income",
@@ -81,7 +76,13 @@ async def create_income(
             user_id=current_user.id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        error = str(e)
+        if "not found" in error.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error)
+        elif "invalid category" in error.lower():
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=error)
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
     return IncomeCreateResponse(
         income=IncomeDetailResponse(
@@ -113,10 +114,11 @@ async def update_income(
             **update_data,
         )
     except ValueError as e:
-        if "Transaction not found" in str(e):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        error = str(e)
+        if "not found" in error.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error)
         else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
     return IncomeDetailResponse(
         id=updated_transaction.id,
@@ -144,5 +146,3 @@ async def delete_income(
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-
-    return None
