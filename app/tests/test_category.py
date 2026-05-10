@@ -20,7 +20,9 @@ class TestGetCategories:
 
 class TestGetCategory:
     def test_get_category_success(self, client, headers, created_category):
-        response = client.get(f"/api/v1/categories/{created_category['id']}", headers=headers)
+        response = client.get(
+            f"/api/v1/categories/{created_category['id']}", headers=headers
+        )
         assert response.status_code == 200
         assert response.json()["name"] == created_category["name"]
 
@@ -31,13 +33,17 @@ class TestGetCategory:
 
 class TestCreateCategory:
     def test_create_category_income(self, client, headers):
-        response = client.post("/api/v1/categories/", json=TEST_CATEGORY, headers=headers)
+        response = client.post(
+            "/api/v1/categories/", json=TEST_CATEGORY, headers=headers
+        )
         assert response.status_code == 201
         assert response.json()["created_item"]["name"] == TEST_CATEGORY["name"]
         assert response.json()["created_item"]["type"] == TEST_CATEGORY["type"]
 
     def test_create_category_expense(self, client, headers):
-        response = client.post("/api/v1/categories/", json=TEST_CATEGORY_EXPENSE, headers=headers)
+        response = client.post(
+            "/api/v1/categories/", json=TEST_CATEGORY_EXPENSE, headers=headers
+        )
         assert response.status_code == 201
         assert response.json()["created_item"]["type"] == TEST_CATEGORY_EXPENSE["type"]
 
@@ -79,7 +85,9 @@ class TestUpdateCategory:
 
 class TestDeleteCategory:
     def test_delete_category_success(self, client, headers, created_category):
-        response = client.delete(f"/api/v1/categories/{created_category['id']}", headers=headers)
+        response = client.delete(
+            f"/api/v1/categories/{created_category['id']}", headers=headers
+        )
         assert response.status_code == 204
 
     def test_delete_category_not_found(self, client, headers):

@@ -16,11 +16,11 @@ class AuthService:
 
         new_user = User(username=username)
         new_user.set_password(password)
-        self.user_repo.add(new_user)
+        self.user_repo.save(new_user)
 
         # default transaction account for new user
         default_account = Account(name="Cash", user_id=new_user.id)
-        self.account_repo.add(default_account)
+        self.account_repo.save(default_account)
 
         return new_user
 

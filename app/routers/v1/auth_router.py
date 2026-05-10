@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core.dependencies import UserAuthenticationDep, AuthServiceDep
 from app.schemas.v1.auth_schema import (
-    UserCreate,
+    UserCreateRequest,
     UserResponse,
     UserCreateResponse,
     LoginResponse,
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     "/register", response_model=UserCreateResponse, status_code=status.HTTP_201_CREATED
 )
 async def register_user(
-    auth_service: AuthServiceDep, user_data: UserCreate
+    auth_service: AuthServiceDep, user_data: UserCreateRequest
 ) -> UserCreateResponse:
 
     try:
@@ -27,7 +27,9 @@ async def register_user(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     return UserCreateResponse(
-        user=UserResponse(id=registered_user.id, username=registered_user.username),
+        created_item=UserResponse(
+            id=registered_user.id, username=registered_user.username
+        ),
     )
 
 

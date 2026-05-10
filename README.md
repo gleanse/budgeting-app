@@ -19,35 +19,6 @@ A budgeting app API built with FastAPI and SQLModel. This project demonstrates J
 
 ---
 
-## Project Structure
-
-```
-.
-├── app/
-│   ├── core/
-│   │   ├── auth_core.py
-│   │   └── dependencies.py
-│   ├── routers/
-│   │   └── v1/
-│   ├── schemas/
-│   │   └── v1/
-│   ├── services/
-│   │   └── v1/
-│   ├── repositories/
-│   ├── models.py
-│   ├── database.py
-│   └── main.py
-├── alembic/
-│   └── versions/
-├── postman/
-│   └── budgeting-fastapi-v1.0.0.json
-├── docker-compose.yml
-├── requirements.txt
-└── .env.example
-```
-
----
-
 ## Getting Started
 
 ### 1. Clone the repo
@@ -120,20 +91,6 @@ FastAPI provides automatic interactive documentation out of the box. All endpoin
 
 - **Swagger UI** → `http://<host>:<port>/docs`
 - **ReDoc** → `http://<host>:<port>/redoc`
-
----
-
-## Postman Collection
-
-A Postman collection is included at `postman/budgeting-fastapi-v1.0.0.json`.
-
-Import it into Postman and set up an environment with:
-
-| Variable | Value |
-|----------|-------|
-| `base_url` | `http://<host>:<port>` |
-
-The collection includes pre-request and post-response scripts that automatically handle token saving and ID tracking across requests.
 
 ---
 

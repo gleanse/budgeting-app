@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.core.dependencies import UserAuthenticationDep, AccountServiceDep
-from app.schemas.v1.account_schema import AccountResponse, AccountBalanceResponse
+from app.schemas.v1.account_schema import AccountResponse
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -12,9 +12,9 @@ async def get_my_accounts(
     return account_service.list_by_user(current_user.id)
 
 
-@router.get("/balance", response_model=AccountBalanceResponse)
+@router.get("/balance")
 async def get_total_balance(
     current_user: UserAuthenticationDep, account_service: AccountServiceDep
 ):
     balance = account_service.account_balance(current_user.id)
-    return AccountBalanceResponse(total_balance=balance)
+    return
