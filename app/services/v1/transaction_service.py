@@ -1,5 +1,6 @@
 from sqlmodel import Session
 from datetime import datetime
+from decimal import Decimal
 from app.models import Income, Expense
 from app.repositories.income_repository import IncomeRepository
 from app.repositories.expense_repository import ExpenseRepository
@@ -43,7 +44,7 @@ class TransactionService:
     def create(
         self,
         transaction_type: str,
-        amount: float,
+        amount: Decimal,
         category_id: int,
         account_id: int,
         description: str,

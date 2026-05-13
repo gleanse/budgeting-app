@@ -1,4 +1,5 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
+from decimal import Decimal
 from app.models import Income, Category, Account
 
 
@@ -10,9 +11,21 @@ class IncomeRepository:
         statement = select(Income).where(Income.category_id == category_id)
         return self.session.exec(statement).first() is not None
 
+    def exists_by_account(self, account_id: int) -> bool:
+        statement = select(Income).where(Income.account_id == account_id)
+        return self.session.exec(statement).first() is not None
+
     def get_all_by_user(self, user_id: int) -> list[Income]:
         statement = select(Income).where(Income.user_id == user_id)
         return self.session.exec(statement).all()
+
+    def get_total_balance_by_account(self, account_id: int) -> Decimal:
+        statement = select(func.sum(Income.amount)).where(
+            Income.account_id == account_id
+        )
+        result = self.session.exec(statement).first()
+
+        return result or Decimal("0")
 
     def get_all_by_user_with_category(
         self, user_id: int

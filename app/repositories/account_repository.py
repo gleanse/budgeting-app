@@ -23,3 +23,7 @@ class AccountRepository:
         self.session.refresh(account)
 
         return account
+
+    def delete(self, account: Account) -> None:
+        self.session.delete(account)
+        self.session.commit()
