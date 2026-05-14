@@ -1,4 +1,5 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
+from decimal import Decimal
 from app.models import Account
 
 
@@ -15,6 +16,14 @@ class AccountRepository:
             Account.id == account_id, Account.user_id == user_id
         )
         return self.session.exec(statement).first()
+
+    def get_total_initial_balance_by_user(self, user_id: int) -> Decimal:
+        statement = select(func.sum(Account.initial_balance)).where(
+            Account.user_id == user_id
+        )
+        result = self.session.exec(statement).first()
+
+        return result or Decimal("0")
 
     def save(self, account: Account) -> Account:
         """insert or update account"""

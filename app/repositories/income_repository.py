@@ -19,6 +19,12 @@ class IncomeRepository:
         statement = select(Income).where(Income.user_id == user_id)
         return self.session.exec(statement).all()
 
+    def get_total_balance_across_accounts_by_user(self, user_id: int) -> Decimal:
+        statement = select(func.sum(Income.amount)).where(Income.user_id == user_id)
+        result = self.session.exec(statement).first()
+
+        return result or Decimal("0")
+
     def get_total_balance_by_account(self, account_id: int) -> Decimal:
         statement = select(func.sum(Income.amount)).where(
             Income.account_id == account_id

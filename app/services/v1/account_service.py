@@ -33,9 +33,18 @@ class AccountService:
 
         return account.initial_balance + total_income - total_expense
 
-    def total_balance(self, user_id: int) -> Decimal:
-        # TODO: total balance of user across all accounts
-        pass
+    def total_balance_on_all_accounts(self, user_id: int) -> Decimal:
+        total_income = self.income_repo.get_total_balance_across_accounts_by_user(
+            user_id
+        )
+        total_expense = self.expense_repo.get_total_balance_across_accounts_by_user(
+            user_id
+        )
+        total_initial_balance = self.account_repo.get_total_initial_balance_by_user(
+            user_id
+        )
+
+        return total_initial_balance + total_income - total_expense
 
     def create(self, name: str, initial_balance: Decimal, user_id: int) -> Account:
         new_account = Account(
